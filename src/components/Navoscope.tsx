@@ -73,7 +73,7 @@ function Field({
   password?: boolean;
   invalid?: boolean;
   inputRef?: React.Ref<HTMLInputElement>;
-  defaultValue?: string;
+  defaultValue?: string | undefined;
 }) {
   const [visible, setVisible] = useState(false);
   const isName = id === "user-name";

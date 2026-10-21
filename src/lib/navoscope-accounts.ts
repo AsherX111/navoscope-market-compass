@@ -24,7 +24,7 @@ export function initialsFromName(name: string) {
     .split(/\s+/u)
     .filter(Boolean)
     .slice(0, 2)
-    .map((part) => Array.from(part)[0].toLocaleUpperCase())
+    .map((part) => (Array.from(part)[0] ?? "").toLocaleUpperCase())
     .join("");
 }
 
