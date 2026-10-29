@@ -2,19 +2,11 @@ import { Link, useLocation, useRouter } from "@tanstack/react-router";
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 
 import videoAsset from "@/assets/navoscope-loop.mp4.asset.json";
-import {
-  accountsKey,
-  hashPassword,
-  initialsFromName,
-  newSalt,
-  normalizeIdentity,
-  readAccounts,
-  sessionKey,
-  validIdentity,
-  type Account,
-} from "@/lib/navoscope-accounts";
+import { supabase } from '@/integrations/supabase/client';
+import { useNavoscopeAuth } from '@/hooks/use-navoscope-auth';
+import { initialsFromName, emailError, passwordError, safeDestination, authError } from '@/lib/navoscope-auth';
 
-type Mode = "login" | "signup" | "username" | null;
+type Mode = "login" | "signup" | "username" | "reset" | null;
 
 export function pageFromPath(path: string): number | null {
   if (path === "/default") return 1;
@@ -22,9 +14,9 @@ export function pageFromPath(path: string): number | null {
   return m ? Number(m[1]) : null;
 }
 function modeFromPath(path: string): Mode {
-  return path === "/login" ? "login" : path === "/create-account" ? "signup" : path === "/username" ? "username" : null;
+  return path === "/reset-password" ? "reset" : path === "/login" ? "login" : path === "/create-account" ? "signup" : path === "/username" ? "username" : null;
 }
-const modePath = { login: "/login", signup: "/create-account", username: "/username" } as const;
+const modePath = { login: "/login", signup: "/create-account", username: "/username", reset: "/reset-password" } as const;
 
 const pages = [1, 2, 3];
 
@@ -139,17 +131,21 @@ export function NavoscopeApp() {
   const router = useRouter();
   const path = useLocation({ select: (l) => l.pathname });
   const mode = modeFromPath(path);
+  const search = useLocation({ select: l => l.search }) as { next?: string };
+  const destination = safeDestination(search.next);
+  const { account, loading: authLoading, error: sessionError } = useNavoscopeAuth();
+  const protectedPage = [1, 2, 3].includes(pageFromPath(path) ?? 0);
 
   const lastNonModePath = useRef("/");
   if (!mode) lastNonModePath.current = path;
-  const activePage = mode ? pageFromPath(lastNonModePath.current) : pageFromPath(path);
+  const activePage = mode || (protectedPage && (authLoading || !account)) ? null : pageFromPath(path);
   const open = activePage !== null;
 
   const pendingSignup = useRef<{ identity: string; password: string } | null>(null);
   const loginFlash = useRef<{ identity: string; message: string } | null>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
 
-  const [account, setAccount] = useState<Account | null>(null);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [instant, setInstant] = useState(true);
 
@@ -159,18 +155,16 @@ export function NavoscopeApp() {
 
   const go = (to: string, replace = false) => router.navigate({ to, replace });
 
-  // Load the browser-local session after hydration.
-  const refreshAccount = () => {
-    try {
-      setAccount(readAccounts()[localStorage.getItem(sessionKey) ?? ""] ?? null);
-    } catch {
-      setAccount(null);
-    }
-  };
   useEffect(() => {
-    refreshAccount();
     const id = requestAnimationFrame(() => setInstant(false));
     return () => cancelAnimationFrame(id);
+  }, []);
+  useEffect(() => {
+    if (protectedPage && !authLoading && !account) void router.navigate({ to: '/login', search: { next: path }, replace: true });
+  }, [protectedPage, authLoading, account, path, router]);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    if (params.has('error')) loginFlash.current = { identity: '', message: 'This email link has expired or is invalid. Request a new confirmation by signing up again, or use Forgot password.' };
   }, []);
 
   // Video playback, respecting reduced motion.
@@ -240,16 +234,17 @@ export function NavoscopeApp() {
     };
   }, [menuOpen]);
 
-  const closeDialog = () => go(lastNonModePath.current);
-  const goMode = (m: Exclude<Mode, null>) => go(modePath[m]);
+  const closeDialog = () => { pendingSignup.current = null; go("/"); };
+  const goMode = (m: Exclude<Mode, null>) => router.navigate({ to: modePath[m], search: { next: destination } });
 
-  const logout = () => {
-    try {
-      localStorage.removeItem(sessionKey);
-    } catch {
-      /* ignore */
-    }
-    window.location.replace("/");
+  const logout = async () => {
+    setLogoutError(null);
+    await router.options.context.queryClient.cancelQueries();
+    router.options.context.queryClient.clear();
+    const { error } = await supabase.auth.signOut();
+    if (error) { setLogoutError(authError(error)); return; }
+    setMenuOpen(false);
+    await go('/', true);
   };
 
   const entries = navEntries(activePage);
@@ -263,9 +258,8 @@ export function NavoscopeApp() {
         onClose={closeDialog}
         onSignup={() => goMode("signup")}
         onLoggedIn={() => {
-          refreshAccount();
           returnFocus.current = null;
-          closeDialog();
+          void go(destination, true);
         }}
       />
     );
@@ -289,11 +283,13 @@ export function NavoscopeApp() {
         onClose={closeDialog}
         onBackToSignup={() => goMode("signup")}
         onCreated={(identity) => {
-          loginFlash.current = { identity, message: "Account created. Log in with your password." };
+          loginFlash.current = { identity, message: "Check your email to confirm ownership before logging in. If this email already has an account, log in or reset your password." };
           goMode("login");
         }}
       />
     );
+
+  if (mode === 'reset') dialogBody = <ResetPasswordForm onClose={closeDialog} onLogin={() => goMode('login')} />;
 
   return (
     <>
@@ -325,7 +321,7 @@ export function NavoscopeApp() {
             ))}
           </nav>
           <nav className="account-nav" aria-label="Account">
-            {account ? (
+            {!authLoading && account ? (
               <div className="account-menu">
                 <button
                   ref={avatarRef}
@@ -345,7 +341,7 @@ export function NavoscopeApp() {
                   </button>
                 </div>
               </div>
-            ) : (
+            ) : !authLoading ? (
               <Link
                 to="/login"
                 onClick={(e) => {
@@ -354,7 +350,7 @@ export function NavoscopeApp() {
               >
                 Log in / Create account
               </Link>
-            )}
+            ) : null}
           </nav>
         </header>
         <main className="hero" inert={open}>
@@ -373,6 +369,8 @@ export function NavoscopeApp() {
         aria-label={open ? `Page ${activePage} placeholder` : "Function page placeholder"}
         aria-hidden={!open}
       />
+      {sessionError && <p className="status error" role="alert">{sessionError}</p>}
+      {logoutError && <p className="status error" role="alert">{logoutError}</p>}
       <dialog
         ref={dialogRef}
         className={`auth-dialog${mode && mode !== "login" ? " signup-dialog" : ""}`}
@@ -437,23 +435,19 @@ function LoginForm({
     h.setInvalidId(null);
     const empty = h.firstEmpty(e.currentTarget);
     if (empty) return h.invalid(empty, "Please complete all fields.");
-    const identity = identityRef.current!;
-    const password = passwordRef.current!;
-    if (!validIdentity(identity.value.trim()))
-      return h.invalid(identity, "Please enter a valid email address or phone number.");
-    const key = normalizeIdentity(identity.value);
-    const account = readAccounts()[key];
-    if (!account || typeof account.salt !== "string" || typeof account.passwordHash !== "string")
-      return h.setStatus({ message: "Email or phone number and password do not match.", error: true });
+    if (busy) return;
+    const identity = identityRef.current;
+    const password = passwordRef.current;
+    if (!identity || !password) return;
+    const validation = emailError(identity.value);
+    if (validation) return h.invalid(identity, validation);
     setBusy(true);
     try {
-      const actual = await hashPassword(password.value, account.salt);
-      if (actual !== account.passwordHash)
-        return h.setStatus({ message: "Email or phone number and password do not match.", error: true });
-      localStorage.setItem(sessionKey, key);
+      const { error } = await supabase.auth.signInWithPassword({ email: identity.value.trim(), password: password.value });
+      if (error) return h.setStatus({ message: authError(error), error: true });
       onLoggedIn();
-    } catch {
-      h.setStatus({ message: "Could not log in in this browser. Please try again.", error: true });
+    } catch (error) {
+      h.setStatus({ message: authError(error), error: true });
     } finally {
       setBusy(false);
     }
@@ -489,9 +483,21 @@ function LoginForm({
             className="text-link"
             href="#forgot-password"
             id="forgot-password"
-            onClick={(e) => {
+            aria-disabled={busy}
+            onClick={async (e) => {
               e.preventDefault();
-              h.setStatus({ message: "Password reset is not connected in this interface preview.", error: false });
+              if (busy) return;
+              const input = identityRef.current;
+              if (!input) return;
+              const validation = emailError(input.value);
+              if (validation) return h.invalid(input, validation);
+              setBusy(true);
+              try {
+                const { error } = await supabase.auth.resetPasswordForEmail(input.value.trim(), { redirectTo: `${window.location.origin}/reset-password` });
+                if (error) throw error;
+                h.setStatus({ message: 'If an account exists for this email, a password reset link has been sent. Check your inbox.', error: false });
+              } catch (error) { h.setStatus({ message: authError(error), error: true }); }
+              finally { setBusy(false); }
             }}
           >
             Forgot password?
@@ -518,8 +524,7 @@ function LoginForm({
       </p>
       <p className="card-note">
         Your workspace, evidence and analysis in one place.
-        <br />
-        This demo stores test accounts only in this browser.
+
       </p>
     </div>
   );
@@ -545,15 +550,14 @@ function SignupForm({
     h.setInvalidId(null);
     const empty = h.firstEmpty(e.currentTarget);
     if (empty) return h.invalid(empty, "Please complete all fields.");
-    const identity = identityRef.current!;
-    const password = passwordRef.current!;
-    const confirm = confirmRef.current!;
-    if (!validIdentity(identity.value.trim()))
-      return h.invalid(identity, "Please enter a valid email address or phone number.");
-    if (password.value.length < 8) return h.invalid(password, "Use at least 8 characters for your password.");
-    if (password.value !== confirm.value) return h.invalid(confirm, "Your passwords do not match.");
-    if (readAccounts()[normalizeIdentity(identity.value)])
-      return h.invalid(identity, "An account already exists for this email or phone number. Please log in instead.");
+    const identity = identityRef.current;
+    const password = passwordRef.current;
+    const confirm = confirmRef.current;
+    if (!identity || !password || !confirm) return;
+    const validation = emailError(identity.value);
+    if (validation) return h.invalid(identity, validation);
+    const failure = passwordError(password.value, confirm.value);
+    if (failure) return h.invalid(password.value.length < 8 ? password : confirm, failure);
     onContinue(identity.value.trim(), password.value);
   };
 
@@ -612,8 +616,7 @@ function SignupForm({
       </p>
       <p className="card-note">
         Your workspace, evidence and analysis in one place.
-        <br />
-        Use a test password for this browser-only demo.
+
       </p>
     </div>
   );
@@ -638,27 +641,20 @@ function UsernameForm({
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     h.setInvalidId(null);
-    const input = nameRef.current!;
+    const input = nameRef.current;
+    if (!input || busy) return;
     if (!input.value.trim()) return h.invalid(input, "Please complete all fields.");
     const userName = input.value.trim().replace(/\s+/gu, " ");
     const p = pending.current;
     if (!p) return onBackToSignup();
-    const key = normalizeIdentity(p.identity);
-    const accounts = readAccounts();
-    if (accounts[key])
-      return h.setStatus({
-        message: "An account already exists for this email or phone number. Please log in instead.",
-        error: true,
-      });
     setBusy(true);
     try {
-      const salt = newSalt();
-      const passwordHash = await hashPassword(p.password, salt);
-      accounts[key] = { identity: p.identity, userName, salt, passwordHash };
-      localStorage.setItem(accountsKey, JSON.stringify(accounts));
+      const { error } = await supabase.auth.signUp({ email: p.identity, password: p.password, options: { data: { display_name: userName }, emailRedirectTo: `${window.location.origin}/login` } });
+      if (error) throw error;
+      pending.current = null;
       onCreated(p.identity);
-    } catch {
-      h.setStatus({ message: "Could not save this account in the browser. Please try again.", error: true });
+    } catch (error) {
+      h.setStatus({ message: authError(error), error: true });
     } finally {
       setBusy(false);
     }
@@ -685,4 +681,58 @@ function UsernameForm({
       <p className="card-note">Your initials will appear in the top-right corner after you log in.</p>
     </div>
   );
+}
+
+function ResetPasswordForm({ onClose, onLogin }: { onClose: () => void; onLogin: () => void }) {
+  const h = useFormHelpers();
+  const [busy, setBusy] = useState(false);
+  const [valid, setValid] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    let alive = true;
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    const recoveryLink = params.get('type') === 'recovery' && !params.has('error');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {
+      if (event === 'PASSWORD_RECOVERY' && alive) { setValid(true); setChecking(false); }
+    });
+    void supabase.auth.getUser().then(({ data: { user }, error }) => {
+      if (!alive) return;
+      setValid(recoveryLink && !!user && !error);
+      setChecking(false);
+      if (!recoveryLink || !user || error) h.setStatus({ message: 'This reset link is invalid, expired or already used. Return to login and request a new reset email.', error: true });
+    });
+    return () => { alive = false; subscription.unsubscribe(); };
+  }, []);
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!valid || busy) return;
+    const password = passwordRef.current;
+    const confirm = confirmRef.current;
+    if (!password || !confirm) return;
+    const failure = passwordError(password.value, confirm.value);
+    if (failure) return h.invalid(password.value.length < 8 ? password : confirm, failure);
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: password.value });
+      if (error) throw error;
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) throw signOutError;
+      setValid(false);
+      h.setStatus({ message: 'Password updated. Return to login to sign in with your new password.', error: false });
+    } catch (error) { h.setStatus({ message: authError(error), error: true }); }
+    finally { setBusy(false); }
+  };
+  return <div className="auth-content">
+    <CloseButton label="Close password reset" onClose={onClose} />
+    <h2 id="dialog-title">Reset password</h2>
+    <form noValidate onSubmit={submit}>
+      <Field id="new-password" label="New password" placeholder="Enter a new password" password autoComplete="new-password" inputRef={passwordRef} invalid={h.invalidId === 'new-password'} />
+      <Field id="confirm-password" label="Confirm password" placeholder="Re-enter your password" password autoComplete="new-password" inputRef={confirmRef} invalid={h.invalidId === 'confirm-password'} />
+      <button className="submit" disabled={busy || checking || !valid} type="submit">{checking ? 'Checking reset link…' : busy ? 'Updating…' : 'Update password'}</button>
+      <StatusLine status={h.status} />
+    </form>
+    <p className="switch"><button type="button" className="text-link" onClick={onLogin}>Return to login</button></p>
+  </div>;
 }
