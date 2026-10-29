@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { navoscopeHead } from "@/lib/navoscope-head";
 
 // The Navoscope shell lives in __root so the video keeps playing across routes.
-export const Route = createFileRoute("/default")({
-  head: () => navoscopeHead("1 · Navoscope"),
+export const Route = createFileRoute("/_authenticated/page-2")({
+  head: () => navoscopeHead("2 · Navoscope"),
   component: () => null,
 });

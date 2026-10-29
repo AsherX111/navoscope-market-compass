@@ -11,5 +11,6 @@
 
 ## Navoscope
 - The whole Navoscope UI (video, nav, curtain, auth dialog) is one persistent shell rendered in `__root.tsx`; route files only supply head() and return null. Why: the background video must keep playing across route changes.
-- Demo accounts are browser-local only (localStorage + PBKDF2, see `src/lib/navoscope-accounts.ts`); no backend. Why: the source app is a browser-only demo by design.
+- Accounts use the generated hosted SDK with private profiles created by an auth trigger; credentials remain only in the two-step signup component memory. Why: email ownership and cross-browser identity must be hosted, not trusted to browser-local demo records.
+- Numbered pages 1–3 and their default alias live under the client-only authenticated layout; the persistent shell suppresses their curtain until a verified SDK user and profile are available. Why: direct loads must be gated without remounting the background video.
 - Visual styles are the original CSS carried over in `src/styles.css`. Why: the imported app is the source of truth for the design.
