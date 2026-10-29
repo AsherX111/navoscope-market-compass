@@ -1,6 +1,7 @@
 import { Link, useLocation, useRouter } from "@tanstack/react-router";
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 
+import { MarketWorkspace } from "@/components/market/MarketWorkspace";
 import videoAsset from "@/assets/navoscope-loop.mp4.asset.json";
 import { supabase } from '@/integrations/supabase/client';
 import { useNavoscopeAuth } from '@/hooks/use-navoscope-auth';
@@ -312,7 +313,7 @@ export function NavoscopeApp() {
               </Link>
             )}
             {entries.map((p) => (
-              <Link key={p} className="nav-pill" to={`/page-${p}` as "/page-1"} aria-label={`Page ${p}`}>
+              <Link key={p} className="nav-pill" to={`/page-${p}` as "/page-1"} aria-label={`Page ${p} — ${p === 1 ? "Market Explorer" : p === 2 ? "Opportunity Scoring" : "Analysis"}`}>
                 {p}
               </Link>
             ))}
@@ -363,9 +364,13 @@ export function NavoscopeApp() {
       <main
         className={`page-transition${open ? " is-active" : ""}${instant ? " is-instant" : ""}`}
         id="page-transition"
-        aria-label={open ? `Page ${activePage} placeholder` : "Function page placeholder"}
+        aria-label={open ? `Navoscope page ${activePage}` : "Navoscope workspace"}
         aria-hidden={!open}
-      />
+      >
+        {account && activePage !== null && activePage <= 3 && (
+          <MarketWorkspace key={account.id} page={activePage} userId={account.id} />
+        )}
+      </main>
       {sessionError && <p className="status error" role="alert">{sessionError}</p>}
       {logoutError && <p className="status error" role="alert">{logoutError}</p>}
       <dialog

@@ -1,5 +1,20 @@
 # Navoscope Market Compass
 
+## Week 7 implementation
+
+The existing hosted Supabase authentication is preserved. Numbered pages 1–3 now implement Market Explorer, Opportunity Scoring, and clearly labelled rule-based Analysis & Recommendations inside the original persistent shell.
+
+- [Progress and remaining configuration](docs/week7-progress.md)
+- [Database migration and RLS verification](docs/database-setup.md)
+- [Actual test evidence](docs/verification.md)
+- [Demo script](docs/demo-script.md)
+- [Data model](docs/data-model.md) / [Application flow](docs/application-flow.md) / [Print-friendly diagrams](docs/print-diagrams.html)
+- [Kanban](docs/kanban-evidence.md), [stack rationale](docs/tech-stack-rationale.md), [Prompt Log](docs/prompt-log.md), [reflection draft](docs/building-reflection-draft.md)
+
+The new migration must be applied to the existing project before hosted saves work. No deployment or production migration was performed by this implementation. The original import brief below is historical; its browser-local account instruction no longer describes the hosted authentication in the code.
+
+## Original import brief (historical)
+
 Import the attached Navoscope source ZIP as a Lovable project. The existing app is the source of truth for copy, page count, visual design, and interaction logic. Rebuild it in Lovable’s supported stack without adding features, buttons, placeholder marketing sections, or alternative copy.
 
 Acceptance criteria:
