@@ -160,9 +160,6 @@ export function NavoscopeApp() {
     return () => cancelAnimationFrame(id);
   }, []);
   useEffect(() => {
-    if (protectedPage && !authLoading && !account) void router.navigate({ to: '/login', search: { next: path }, replace: true });
-  }, [protectedPage, authLoading, account, path, router]);
-  useEffect(() => {
     const params = new URLSearchParams(window.location.hash.slice(1));
     if (params.has('error')) loginFlash.current = { identity: '', message: 'This email link has expired or is invalid. Request a new confirmation by signing up again, or use Forgot password.' };
   }, []);
@@ -425,7 +422,7 @@ function LoginForm({
   useEffect(() => {
     if (initial) {
       passwordRef.current?.focus();
-      h.setStatus({ message: initial.message, error: false });
+      h.setStatus({ message: initial.message, error: initial.message.includes('expired') });
     } else identityRef.current?.focus({ preventScroll: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
