@@ -5,13 +5,14 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { routeTree } from "@/routeTree.gen";
 
-function renderAt(path: string) {
+async function renderAt(path: string) {
   const router = createRouter({
     routeTree,
     history: createMemoryHistory({ initialEntries: [path] }),
     context: { queryClient: new QueryClient() },
     defaultPreload: "off",
   });
+  await router.load();
   render(<RouterProvider router={router} />);
   return screen.findByRole("navigation", { name: "Primary navigation" });
 }
