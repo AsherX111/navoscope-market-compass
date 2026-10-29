@@ -1,41 +1,66 @@
-# Building reflection — student completion draft
+# Week 7 Individual Building Reflection — Draft for Student Review
 
-Evidence basis: local implementation on 29 October 2026, documented in `week7-progress.md` and `verification.md`. This is a technical draft by Codex, not a statement of the student's personal experiences or team contributions.
+Project: Navoscope Market Compass
+Checkpoint: Week 7 / Checkpoint 2
+Date: 29 October 2026
+Student name / ID: [Complete personally]
 
-## What was difficult
+This English draft was prepared with Codex from the student's recorded actions and supplied evidence. The student should review it, correct anything that does not match their experience, and complete the personal-learning fields. It does not claim independent authorship of AI-generated code.
 
-The existing numbered destinations were empty, while navigation, animation and auth lived in one persistent shell. Adding independent page shells would have risked remounting the background; the implementation renders the feature workspace inside the existing curtain. Persistence also needed enforcement beyond client-side filters, so the additive SQL migration includes ownership policies, rating constraints and archive protection.
+## My contribution and the outcome
 
-Hosted validation is limited by the current cloud network policy and unapplied migration. Local database tests exercise PostgreSQL behavior but do not prove live Supabase/PostgREST integration. The original video uses a Lovable-specific resource path missing in this local environment. Existing lint debt remains.
+During Week 7, I worked on moving Navoscope from an existing landing and authentication experience towards three usable market-intelligence workflows. Codex implemented Market Explorer, Opportunity Scoring and a clearly labelled rule-based analysis feature. My recorded contribution was to coordinate the GitHub-to-Lovable integration, execute the supplied database scripts in the existing project, and perform guided checks in the Lovable preview.
 
-**Student's own difficult moment and how I investigated it:** ___
+I created the cross-fork pull request and merged the feature changes into the original AsherX111 repository after reviewing the integration path. I opened the updated preview and checked the new interface. I also completed the Lovable publication steps and supplied a screenshot stating “Your website was updated.” This confirms the platform's publication completion, although a separate post-publication acceptance run on the public URL has not been recorded.
 
-## What changed during development
+## A difficulty I encountered and how it was resolved
 
-Three empty private destinations now contain market exploration, weighted evaluation and structured rule-based analysis. The new save layer reuses Supabase and does not fall back to fake browser-local accounts. Analysis explicitly discloses the absence of a model provider. Archived evaluations require a separate restore before content can change.
+An important difficulty was understanding which repository and database belonged to the running application. The code changes were initially in my personal GitHub fork, while the original Lovable project was connected to AsherX111/navoscope-market-compass. I opened Lovable's Git settings and confirmed the repository address. This explained why changes in my fork would not automatically appear in the original project. The solution was a cross-fork pull request into the repository that Lovable actually synchronises with, rather than changing the project's connection or creating another application.
 
-**What I personally changed, reviewed or rejected, with file/example evidence:** ___
+A similar issue arose with the database. The Supabase dashboard I opened showed a different project. Instead of creating tables there, I navigated to the existing Lovable project's Database and SQL editor. I ran a read-only inspection and supplied its exported results before applying the additive migration. This preserved the existing profiles and authentication architecture.
 
-## What worked and what did not
+## What I checked
 
-Automated scoring, discovery and component workflows passed. The isolated database checks confirmed owner isolation and archived protection in a disposable PostgreSQL engine. Build and type checks passed. Full lint fails on existing formatting issues; real hosted account/persistence acceptance remains outstanding. No deployment or physical submission was performed.
+For Opportunity Scoring, I followed the guided example of changing Demand potential from 3 to 5 while keeping the other ratings at 3. The expected total was 72/100. I saved the evaluation and confirmed that the score, status and notes remained after refreshing the preview. I also reported successful report generation/save/retrieval and archive/restore checks. Those latter confirmations were brief replies; they should not be presented as independently captured browser test reports.
 
-**My own browser observations, including a failure and correction if one occurred:** ___
+For data access, I executed the supplied rollback-only SQL test in the existing Lovable database and exported the result. It reported PASS for owner access, cross-user read/write denial, anonymous denial and fixture rollback. Therefore, my account-isolation result is PASS at the hosted database RLS level. The script uses controlled SQL identities; it does not test browser account switching or JWT validation.
 
-## Learning prompts — not claims of learning
+The automated implementation checks were performed by Codex: 25 application tests, 12 original isolated PostgreSQL checks, TypeScript, the production build, focused lint and four unauthenticated Chromium smoke checks passed. I did not personally write or execute those automated suites. Full-repository lint still has existing issues.
 
-Explain in your own words why UI filtering is insufficient for data security, how the weights produce the displayed total, why report snapshots retain their original assumptions, and how an honest rule-based demonstration differs from an AI API call.
+## Technical points I can explain from this work
 
-**My learning and evidence:** ___
+The scoring formula is transparent: each rating is divided by 5, multiplied by its criterion weight and by 100, then summed. Raising demand from 3 to 5 adds 12 points because demand has a 30% weight. Saved report snapshots retain the ratings and assumptions used at generation time, so later evaluation edits should not rewrite a previous report.
 
-## Remaining work / ownership
+The application uses illustrative market data and deterministic rule-based reports. I should describe it as a demo analysis feature, rather than claim it called a language model or produced verified market research. RLS provides a database-level ownership boundary; hiding records in the interface alone would not establish data isolation.
 
-| Remaining task | Responsible person | Due (CST) |
-|---|---|---|
-| Apply additive migration and live two-user validation | Unassigned — confirm with team | 1 Nov 2026 23:59 |
-| Rehearse actual-account demo and verify video | Unassigned — confirm with team | 1 Nov 2026 23:59 |
-| Confirm tutor/platform and any admin-view requirement | Student / confirm named owner | 1 Nov 2026 23:59 |
-| Complete personal Prompt Log / team evidence | Student / confirm named owner | 1 Nov 2026 23:59 |
-| Prepare paper diagrams, take real photographs, submit | Student / confirm named owner | 1 Nov 2026 23:59 |
+These are technical explanations supported by the implementation, not a substitute for my personal reflection. My own learning should be completed below.
 
-**Actual team allocation, meetings, tutor feedback and personal reflection:** ___
+## What remains and what I would improve
+
+The core workflows are implemented and the hosted database isolation check passed. Remaining evidence work includes a public-site smoke check after publication, stronger captured evidence for report retrieval and archive/restore, the two actual paper-diagram photographs, and confirmed team roles and tutor requirements. There is no administrator management view or live language-model provider in this implementation. Neither should be claimed as completed. Existing lint debt should be prioritised separately from this checkpoint's functional work.
+
+## Suggested personal reflection — confirm against my own experience
+
+The following first-person wording is an AI-assisted proposal based on the recorded workflow. I need to review it and change any feeling or learning statement that does not reflect my experience before submitting it.
+
+### What I found most difficult
+
+The part I found most difficult was understanding how the personal GitHub fork, the original group repository, Lovable and the database were connected. At first, it was not obvious to me why code could be finished in one place while the original website still showed an older version. Checking the actual repository address in Lovable made the delivery path clearer. The many separate steps between implementation, database setup, preview and publication made this a more involved task than simply editing a page.
+
+### A decision I made and why it mattered
+
+When the Supabase project I opened did not match the existing application, I did not continue creating tables there. With guidance, I located the existing database inside Lovable, inspected its structure and then applied the supplied migration. This kept the work connected to the existing application rather than introducing a parallel database. My contribution here was carrying out and checking the integration steps, not independently writing the migration or application code.
+
+### What I learned
+
+A useful lesson for me is that code being committed, a pull request being merged, a preview working and a website being published are different milestones. I also have a clearer explanation for the difference between persistence and isolation: refreshing a page checks whether saved work remains available, while the database RLS test checks whether another identity can access records it should not see. The PASS export gives concrete evidence for the database check, rather than relying only on the appearance of the interface.
+
+The scoring example also gives me a simple calculation I can explain during the demonstration. Raising demand from 3 to 5 adds 12 points because its weight is 30%, producing 72/100 when the other ratings remain at 3. I should be equally precise about the analysis feature: it generates a deterministic demonstration report, not verified research or a response from a live language model.
+
+### What I would do differently next time
+
+Next time, I would confirm the connected repository, database and publication workflow at the start. I would keep a short checklist separating implementation, integration, persistence, access control and publication, and save screenshots or result exports immediately after each check. That would make the final evidence easier to assemble and reduce confusion about what had actually been completed.
+
+### My remaining responsibilities
+
+Before the checkpoint deadline, I need to review this draft in my own words, capture any missing feature evidence, prepare and photograph the two paper diagrams, and rehearse the demonstration with the group. I also need to confirm actual team roles and tutor requirements. Specific teammate contributions, meetings and tutor feedback are not documented in this conversation, so I will add those details only after checking them with the team.
