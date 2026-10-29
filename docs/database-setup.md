@@ -33,3 +33,9 @@ This bootstraps fixture auth roles/tables in memory, applies the actual baseline
 - Test existing signup/display-name trigger and profile policies. Review any pre-existing policies that the migration did not alter; local source is not proof of current hosted policy state.
 
 No administrator role was found. Normal users cannot self-elevate because this change adds no role field/control. If an admin management view is required by the tutor, confirm that scope and implement a server-controlled membership/policy design separately before claiming it is delivered.
+
+## Hosted account-isolation check — completed, PASS
+
+`scripts/sql/verify-hosted-isolation.sql` provides a rollback-only RLS check for the existing project's privileged Lovable SQL editor. It selects two existing profile IDs without displaying them, uses transaction-local authenticated/anonymous roles and request claims, verifies owner access and cross-user/anonymous denial, and deliberately rolls back every fixture write. It creates no accounts and reads no passwords. It requires at least two existing profiles and permission to switch roles.
+
+The script was exercised against the isolated PostgreSQL test engine; fixture row counts were unchanged afterwards. The student ran it against the hosted project on 29 October 2026 and uploaded query-results-export-2026-10-29_15-26-59.csv, reporting PASS. The supplied export is retained as the evidence for this completed check; no rerun is required to record this result. Future regression runs should retain their own result or error. A successful result is `PASS`; any error means the check has not passed. This validates database policies under controlled SQL identities, not real JWT verification or browser account switching. Do not label browser isolation passed on this evidence alone.
