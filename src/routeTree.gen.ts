@@ -10,18 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as CreateAccountRouteImport } from './routes/create-account'
-import { Route as DefaultRouteImport } from './routes/default'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as Page1RouteImport } from './routes/page-1'
-import { Route as Page2RouteImport } from './routes/page-2'
-import { Route as Page3RouteImport } from './routes/page-3'
 import { Route as Page4RouteImport } from './routes/page-4'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as UsernameRouteImport } from './routes/username'
+import { Route as AuthenticatedDefaultRouteImport } from './routes/_authenticated/default'
+import { Route as AuthenticatedPage1RouteImport } from './routes/_authenticated/page-1'
+import { Route as AuthenticatedPage2RouteImport } from './routes/_authenticated/page-2'
+import { Route as AuthenticatedPage3RouteImport } from './routes/_authenticated/page-3'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreateAccountRoute = CreateAccountRouteImport.update({
@@ -29,29 +35,9 @@ const CreateAccountRoute = CreateAccountRouteImport.update({
   path: '/create-account',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DefaultRoute = DefaultRouteImport.update({
-  id: '/default',
-  path: '/default',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Page1Route = Page1RouteImport.update({
-  id: '/page-1',
-  path: '/page-1',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Page2Route = Page2RouteImport.update({
-  id: '/page-2',
-  path: '/page-2',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Page3Route = Page3RouteImport.update({
-  id: '/page-3',
-  path: '/page-3',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Page4Route = Page4RouteImport.update({
@@ -59,91 +45,122 @@ const Page4Route = Page4RouteImport.update({
   path: '/page-4',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UsernameRoute = UsernameRouteImport.update({
   id: '/username',
   path: '/username',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDefaultRoute = AuthenticatedDefaultRouteImport.update({
+  id: '/default',
+  path: '/default',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPage1Route = AuthenticatedPage1RouteImport.update({
+  id: '/page-1',
+  path: '/page-1',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPage2Route = AuthenticatedPage2RouteImport.update({
+  id: '/page-2',
+  path: '/page-2',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPage3Route = AuthenticatedPage3RouteImport.update({
+  id: '/page-3',
+  path: '/page-3',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create-account': typeof CreateAccountRoute
-  '/default': typeof DefaultRoute
   '/login': typeof LoginRoute
-  '/page-1': typeof Page1Route
-  '/page-2': typeof Page2Route
-  '/page-3': typeof Page3Route
   '/page-4': typeof Page4Route
+  '/reset-password': typeof ResetPasswordRoute
   '/username': typeof UsernameRoute
+  '/default': typeof AuthenticatedDefaultRoute
+  '/page-1': typeof AuthenticatedPage1Route
+  '/page-2': typeof AuthenticatedPage2Route
+  '/page-3': typeof AuthenticatedPage3Route
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create-account': typeof CreateAccountRoute
-  '/default': typeof DefaultRoute
   '/login': typeof LoginRoute
-  '/page-1': typeof Page1Route
-  '/page-2': typeof Page2Route
-  '/page-3': typeof Page3Route
   '/page-4': typeof Page4Route
+  '/reset-password': typeof ResetPasswordRoute
   '/username': typeof UsernameRoute
+  '/default': typeof AuthenticatedDefaultRoute
+  '/page-1': typeof AuthenticatedPage1Route
+  '/page-2': typeof AuthenticatedPage2Route
+  '/page-3': typeof AuthenticatedPage3Route
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/create-account': typeof CreateAccountRoute
-  '/default': typeof DefaultRoute
   '/login': typeof LoginRoute
-  '/page-1': typeof Page1Route
-  '/page-2': typeof Page2Route
-  '/page-3': typeof Page3Route
   '/page-4': typeof Page4Route
+  '/reset-password': typeof ResetPasswordRoute
   '/username': typeof UsernameRoute
+  '/_authenticated/default': typeof AuthenticatedDefaultRoute
+  '/_authenticated/page-1': typeof AuthenticatedPage1Route
+  '/_authenticated/page-2': typeof AuthenticatedPage2Route
+  '/_authenticated/page-3': typeof AuthenticatedPage3Route
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/create-account'
-    | '/default'
     | '/login'
+    | '/page-4'
+    | '/reset-password'
+    | '/username'
+    | '/default'
     | '/page-1'
     | '/page-2'
     | '/page-3'
-    | '/page-4'
-    | '/username'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/create-account'
-    | '/default'
     | '/login'
+    | '/page-4'
+    | '/reset-password'
+    | '/username'
+    | '/default'
     | '/page-1'
     | '/page-2'
     | '/page-3'
-    | '/page-4'
-    | '/username'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/create-account'
-    | '/default'
     | '/login'
-    | '/page-1'
-    | '/page-2'
-    | '/page-3'
     | '/page-4'
+    | '/reset-password'
     | '/username'
+    | '/_authenticated/default'
+    | '/_authenticated/page-1'
+    | '/_authenticated/page-2'
+    | '/_authenticated/page-3'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   CreateAccountRoute: typeof CreateAccountRoute
-  DefaultRoute: typeof DefaultRoute
   LoginRoute: typeof LoginRoute
-  Page1Route: typeof Page1Route
-  Page2Route: typeof Page2Route
-  Page3Route: typeof Page3Route
   Page4Route: typeof Page4Route
+  ResetPasswordRoute: typeof ResetPasswordRoute
   UsernameRoute: typeof UsernameRoute
 }
 
@@ -156,18 +173,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/create-account': {
       id: '/create-account'
       path: '/create-account'
       fullPath: '/create-account'
       preLoaderRoute: typeof CreateAccountRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/default': {
-      id: '/default'
-      path: '/default'
-      fullPath: '/default'
-      preLoaderRoute: typeof DefaultRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -177,32 +194,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/page-1': {
-      id: '/page-1'
-      path: '/page-1'
-      fullPath: '/page-1'
-      preLoaderRoute: typeof Page1RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/page-2': {
-      id: '/page-2'
-      path: '/page-2'
-      fullPath: '/page-2'
-      preLoaderRoute: typeof Page2RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/page-3': {
-      id: '/page-3'
-      path: '/page-3'
-      fullPath: '/page-3'
-      preLoaderRoute: typeof Page3RouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/page-4': {
       id: '/page-4'
       path: '/page-4'
       fullPath: '/page-4'
       preLoaderRoute: typeof Page4RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/username': {
@@ -212,18 +215,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/default': {
+      id: '/_authenticated/default'
+      path: '/default'
+      fullPath: '/default'
+      preLoaderRoute: typeof AuthenticatedDefaultRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/page-1': {
+      id: '/_authenticated/page-1'
+      path: '/page-1'
+      fullPath: '/page-1'
+      preLoaderRoute: typeof AuthenticatedPage1RouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/page-2': {
+      id: '/_authenticated/page-2'
+      path: '/page-2'
+      fullPath: '/page-2'
+      preLoaderRoute: typeof AuthenticatedPage2RouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/page-3': {
+      id: '/_authenticated/page-3'
+      path: '/page-3'
+      fullPath: '/page-3'
+      preLoaderRoute: typeof AuthenticatedPage3RouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedDefaultRoute: typeof AuthenticatedDefaultRoute
+  AuthenticatedPage1Route: typeof AuthenticatedPage1Route
+  AuthenticatedPage2Route: typeof AuthenticatedPage2Route
+  AuthenticatedPage3Route: typeof AuthenticatedPage3Route
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedDefaultRoute: AuthenticatedDefaultRoute,
+  AuthenticatedPage1Route: AuthenticatedPage1Route,
+  AuthenticatedPage2Route: AuthenticatedPage2Route,
+  AuthenticatedPage3Route: AuthenticatedPage3Route,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   CreateAccountRoute: CreateAccountRoute,
-  DefaultRoute: DefaultRoute,
   LoginRoute: LoginRoute,
-  Page1Route: Page1Route,
-  Page2Route: Page2Route,
-  Page3Route: Page3Route,
   Page4Route: Page4Route,
+  ResetPasswordRoute: ResetPasswordRoute,
   UsernameRoute: UsernameRoute,
 }
 export const routeTree = rootRouteImport
