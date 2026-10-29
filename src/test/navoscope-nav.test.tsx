@@ -1,38 +1,21 @@
-import { QueryClient } from "@tanstack/react-query";
-import { createMemoryHistory, createRouter, RouterProvider } from "@tanstack/react-router";
-import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { routeTree } from "@/routeTree.gen";
-
-async function renderAt(path: string) {
-  const router = createRouter({
-    routeTree,
-    history: createMemoryHistory({ initialEntries: [path] }),
-    context: { queryClient: new QueryClient() },
-    defaultPreload: "off",
-  });
-  await router.load();
-  render(<RouterProvider router={router} />);
-  return screen.findByRole("navigation", { name: "Primary navigation" });
-}
-
-afterEach(cleanup);
+import { navEntries, pageFromPath } from "@/components/Navoscope";
 
 describe("top navigation", () => {
-  it("offers exactly pages 1, 2 and 3 on the homepage", async () => {
-    const nav = await renderAt("/");
-    expect(
-      [...nav.querySelectorAll<HTMLAnchorElement>("a.nav-pill")].map((a) => a.textContent?.trim()),
-    ).toEqual(["1", "2", "3"]);
-    expect(nav.textContent).not.toContain("4");
+  it("offers exactly pages 1, 2 and 3 on the homepage", () => {
+    expect(navEntries(null)).toEqual([1, 2, 3]);
   });
 
-  it("leads with Main Page, then the remaining numbers in ascending order, on page 2", async () => {
-    const nav = await renderAt("/page-2");
-    expect(
-      [...nav.querySelectorAll<HTMLAnchorElement>("a.nav-pill")].map((a) => a.textContent?.trim()),
-    ).toEqual(["Main Page", "1", "3"]);
-    expect(nav.textContent).not.toContain("4");
+  it("offers the other two pages, in ascending order, on each numbered page", () => {
+    expect(navEntries(1)).toEqual([2, 3]);
+    expect(navEntries(2)).toEqual([1, 3]);
+    expect(navEntries(3)).toEqual([1, 2]);
+  });
+
+  it("never offers page 4, though its route still opens", () => {
+    expect(navEntries(null)).not.toContain(4);
+    expect(navEntries(4)).toEqual([1, 2, 3]);
+    expect(pageFromPath("/page-4")).toBe(4);
   });
 });

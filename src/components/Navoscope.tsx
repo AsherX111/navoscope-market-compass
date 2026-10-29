@@ -26,6 +26,13 @@ function modeFromPath(path: string): Mode {
 }
 const modePath = { login: "/login", signup: "/create-account", username: "/username" } as const;
 
+const pages = [1, 2, 3];
+
+/** The numbered links shown in the top nav: all of them on the homepage, otherwise the other pages. */
+export function navEntries(activePage: number | null): number[] {
+  return activePage === null ? pages : pages.filter((p) => p !== activePage);
+}
+
 const CloseIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
     <path d="m6 6 12 12M6 18 18 6" />
@@ -245,8 +252,7 @@ export function NavoscopeApp() {
     window.location.replace("/");
   };
 
-  const pages = [1, 2, 3];
-  const entries = activePage === null ? pages : pages.filter((p) => p !== activePage);
+  const entries = navEntries(activePage);
 
   let dialogBody: ReactNode = null;
   if (mode === "login")
