@@ -5,21 +5,22 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { routeTree } from "@/routeTree.gen";
 
-function renderAt(path: string) {
+async function renderAt(path: string) {
   const router = createRouter({
     routeTree,
     history: createMemoryHistory({ initialEntries: [path] }),
     context: { queryClient: new QueryClient() },
     defaultPreload: "off",
   });
+  await router.isReady();
   return render(<RouterProvider router={router} />);
 }
 
 afterEach(cleanup);
 
 describe("top navigation", () => {
-  it("offers exactly pages 1, 2 and 3 on the homepage", () => {
-    renderAt("/");
+  it("offers exactly pages 1, 2 and 3 on the homepage", async () => {
+    await renderAt("/");
     const nav = screen.getByRole("navigation", { name: "Primary navigation" });
     expect(
       [...nav.querySelectorAll<HTMLAnchorElement>("a.nav-pill")].map((a) => a.textContent?.trim()),
@@ -27,8 +28,8 @@ describe("top navigation", () => {
     expect(nav.textContent).not.toContain("4");
   });
 
-  it("leads with Main Page, then the remaining numbers in ascending order, on page 2", () => {
-    renderAt("/page-2");
+  it("leads with Main Page, then the remaining numbers in ascending order, on page 2", async () => {
+    await renderAt("/page-2");
     const nav = screen.getByRole("navigation", { name: "Primary navigation" });
     expect(
       [...nav.querySelectorAll<HTMLAnchorElement>("a.nav-pill")].map((a) => a.textContent?.trim()),
