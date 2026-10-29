@@ -420,6 +420,11 @@ function LoginForm({
   const identityRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    if (params.has('error')) {
+      h.setStatus({ message: 'This confirmation link is invalid, expired or already used. Sign up again to request a new confirmation email.', error: true });
+      return;
+    }
     if (initial) {
       passwordRef.current?.focus();
       h.setStatus({ message: initial.message, error: initial.message.includes('expired') });
@@ -690,9 +695,9 @@ function ResetPasswordForm({ onClose, onLogin }: { onClose: () => void; onLogin:
   useEffect(() => {
     let alive = true;
     const params = new URLSearchParams(window.location.hash.slice(1));
-    const recoveryLink = params.get('type') === 'recovery' && !params.has('error');
+    let recoveryLink = params.get('type') === 'recovery' && !params.has('error');
     const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {
-      if (event === 'PASSWORD_RECOVERY' && alive) { setValid(true); setChecking(false); }
+      if (event === 'PASSWORD_RECOVERY' && alive) { recoveryLink = true; setValid(true); setChecking(false); h.setStatus(null); }
     });
     void supabase.auth.getUser().then(({ data: { user }, error }) => {
       if (!alive) return;
