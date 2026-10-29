@@ -14,7 +14,7 @@ The connected personal fork contained the actual Navoscope persistent black-and-
 - **Persistence/security implementation:** existing Supabase account identity retained; additive migration and SDK types added. Owner RLS/grants, input constraints, immutable identities and database-enforced archive protection. No second application database, browser-local fake accounts, self-elevation or provider secret in client code.
 - **Coursework artifacts:** model/flow diagrams, print-friendly two-page HTML, Kanban ledger, stack rationale, truthful four-column Prompt Log, reflection draft, demo script, database instructions and verification evidence.
 
-Code and coursework artifacts are implemented. The student subsequently applied the hosted migration, merged upstream PR #1, opened the updated Lovable preview and reported successful guided persistence and archive checks. Full hosted acceptance remains **partially completed**, particularly cross-account isolation. See `verification.md` for passed checks and limits; local tests are not evidence of deployment.
+Code and coursework artifacts are implemented. The student subsequently applied the hosted migration, merged upstream PR #1, opened the updated Lovable preview and reported successful guided persistence and archive checks. Full hosted acceptance remains **partially completed**, including real-browser account switching and JWT verification. A later student-supplied SQL export confirms hosted database RLS isolation passed. See `verification.md` for passed checks and limits; local tests are not evidence of deployment.
 
 ## Verification results
 
@@ -24,7 +24,7 @@ Code and coursework artifacts are implemented. The student subsequently applied 
 
 1. **Completed by student:** additive migration applied in the existing Lovable database. Export confirms all four tables with RLS enabled. Do not rerun it blindly; database setup instructions are historical guidance for an unapplied project.
 2. Apply the previously saved environment network requirement for the existing Supabase host and retry the affected request. Authentication configuration exists, but current cloud access is still blocked.
-3. **Partially completed:** student confirmed preview evaluation persistence after refresh and reported analysis retrieval/archive-restore success. Hosted two-user/API isolation was explicitly deferred and remains unverified. Remaining acceptance must not be labelled passed.
+3. **Partially completed:** student confirmed preview evaluation persistence after refresh and reported analysis retrieval/archive-restore success. A later student-executed rollback-only SQL check passed hosted database RLS isolation; browser account switching and JWT validation remain unverified. Remaining acceptance must not be labelled passed.
 4. Obtain/verify the original video asset in Lovable or a separately authorized asset fix. This implementation did not change its resource address or invent a replacement.
 5. Confirm whether an administrator management view is mandatory. The inspected schema has no roles; the conditional administrator feature was not invented. If required, secure server-managed roles and views remain work.
 6. Optional later scope: real server-side AI provider. Current transparent fallback satisfies the requested demo option; no actual LLM call is claimed.

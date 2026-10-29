@@ -24,3 +24,5 @@ This is a repository work ledger, not a claim that a team board, meeting or tuto
 ## Subsequent student actions
 
 On 29 October the student applied the migration and exported the resulting table/RLS state, merged upstream PR #1, opened the integrated Lovable preview, confirmed evaluation persistence after refresh, and reported report retrieval and archive/restore success. Hosted account isolation was explicitly deferred. Publication for team viewing is now authorised but not confirmed. No teammate assignment, tutor approval, personal learning narrative or physical submission has been inferred.
+
+Subsequent hosted RLS result: the student supplied query-results-export-2026-10-29_15-26-59.csv reporting PASS for the rollback-only SQL check. Database owner access, cross-user read/write denial, anonymous denial and fixture rollback passed. Browser account switching and JWT verification are separate and remain untested.
