@@ -47,12 +47,12 @@ Use `demo-script.md`. Do not convert pending checks into passes merely because l
 | Evaluation persistence after refresh | Student confirmed score, status and notes remained | Explicit student reply to the guided refresh checklist. No record values or credentials were exported. |
 | Analysis save/retrieval | Student reported success with a brief “ok” | Guided sequence included generation, save, refresh and retrieval. No independent browser capture/API verification of the saved report was supplied. |
 | Archive and restore | Student reported success with a brief “ok” | Guided UI sequence; live direct-API archive enforcement was not tested. |
-| Hosted database RLS isolation | PASS — student-executed SQL check | Uploaded query-results-export-2026-10-29_15-26-59.csv reports owner access, cross-user read/write denial, anonymous denial and fixture rollback passed. Controlled SQL identities only; browser login/JWT verification remain untested. |
+| Account isolation — hosted database RLS | PASS — completed by the student | Uploaded query-results-export-2026-10-29_15-26-59.csv reports owner access, cross-user read/write denial, anonymous denial and fixture rollback passed. Controlled SQL identities only; browser login/JWT verification remain untested. |
 | Website publication | Authorised by the student; not yet confirmed | No Lovable publish tool is available in this cloud session. A Git merge or working preview does not establish publication. |
 
 The initial cloud-proxy 403 and local video 404 were cloud/local observations, not evidence that the student's Lovable preview cannot use its backend/video. The background appears in preview screenshots; looping playback has not been independently verified.
 
-## Prepared hosted isolation check
+## Completed hosted account-isolation test — PASS (database RLS)
 
 The rollback-only `scripts/sql/verify-hosted-isolation.sql` was added at the student's request. The isolated PostgreSQL harness successfully exercised it and confirmed unchanged market/evaluation/report row counts. The student subsequently ran it in the original Lovable SQL editor and supplied query-results-export-2026-10-29_15-26-59.csv with result PASS. It uses two existing profiles with controlled SQL request claims; it does not create credentials, validate JWTs or certify browser account switching. The original 12 database checks still pass, plus this script regression check.
 
