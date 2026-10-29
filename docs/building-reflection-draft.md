@@ -1,41 +1,48 @@
-# Building reflection — student completion draft
+# Week 7 Individual Building Reflection — Draft for Student Review
 
-Evidence basis: local implementation on 29 October 2026, documented in `week7-progress.md` and `verification.md`. This is a technical draft by Codex, not a statement of the student's personal experiences or team contributions.
+Project: Navoscope Market Compass
+Checkpoint: Week 7 / Checkpoint 2
+Date: 29 October 2026
+Student name / ID: [Complete personally]
 
-## What was difficult
+This English draft was prepared with Codex from the student's recorded actions and supplied evidence. The student should review it, correct anything that does not match their experience, and complete the personal-learning fields. It does not claim independent authorship of AI-generated code.
 
-The existing numbered destinations were empty, while navigation, animation and auth lived in one persistent shell. Adding independent page shells would have risked remounting the background; the implementation renders the feature workspace inside the existing curtain. Persistence also needed enforcement beyond client-side filters, so the additive SQL migration includes ownership policies, rating constraints and archive protection.
+## My contribution and the outcome
 
-Hosted validation is limited by the current cloud network policy and unapplied migration. Local database tests exercise PostgreSQL behavior but do not prove live Supabase/PostgREST integration. The original video uses a Lovable-specific resource path missing in this local environment. Existing lint debt remains.
+During Week 7, I worked on moving Navoscope from an existing landing and authentication experience towards three usable market-intelligence workflows. Codex implemented Market Explorer, Opportunity Scoring and a clearly labelled rule-based analysis feature. My recorded contribution was to coordinate the GitHub-to-Lovable integration, execute the supplied database scripts in the existing project, and perform guided checks in the Lovable preview.
 
-**Student's own difficult moment and how I investigated it:** ___
+I created the cross-fork pull request and merged the feature changes into the original AsherX111 repository after reviewing the integration path. I opened the updated preview and checked the new interface. I also completed the Lovable publication steps and supplied a screenshot stating “Your website was updated.” This confirms the platform's publication completion, although a separate post-publication acceptance run on the public URL has not been recorded.
 
-## What changed during development
+## A difficulty I encountered and how it was resolved
 
-Three empty private destinations now contain market exploration, weighted evaluation and structured rule-based analysis. The new save layer reuses Supabase and does not fall back to fake browser-local accounts. Analysis explicitly discloses the absence of a model provider. Archived evaluations require a separate restore before content can change.
+An important difficulty was understanding which repository and database belonged to the running application. The code changes were initially in my personal GitHub fork, while the original Lovable project was connected to AsherX111/navoscope-market-compass. I opened Lovable's Git settings and confirmed the repository address. This explained why changes in my fork would not automatically appear in the original project. The solution was a cross-fork pull request into the repository that Lovable actually synchronises with, rather than changing the project's connection or creating another application.
 
-**What I personally changed, reviewed or rejected, with file/example evidence:** ___
+A similar issue arose with the database. The Supabase dashboard I opened showed a different project. Instead of creating tables there, I navigated to the existing Lovable project's Database and SQL editor. I ran a read-only inspection and supplied its exported results before applying the additive migration. This preserved the existing profiles and authentication architecture.
 
-## What worked and what did not
+## What I checked
 
-Automated scoring, discovery and component workflows passed. The isolated database checks confirmed owner isolation and archived protection in a disposable PostgreSQL engine. Build and type checks passed. Full lint fails on existing formatting issues; real hosted account/persistence acceptance remains outstanding. No deployment or physical submission was performed.
+For Opportunity Scoring, I followed the guided example of changing Demand potential from 3 to 5 while keeping the other ratings at 3. The expected total was 72/100. I saved the evaluation and confirmed that the score, status and notes remained after refreshing the preview. I also reported successful report generation/save/retrieval and archive/restore checks. Those latter confirmations were brief replies; they should not be presented as independently captured browser test reports.
 
-**My own browser observations, including a failure and correction if one occurred:** ___
+For data access, I executed the supplied rollback-only SQL test in the existing Lovable database and exported the result. It reported PASS for owner access, cross-user read/write denial, anonymous denial and fixture rollback. Therefore, my account-isolation result is PASS at the hosted database RLS level. The script uses controlled SQL identities; it does not test browser account switching or JWT validation.
 
-## Learning prompts — not claims of learning
+The automated implementation checks were performed by Codex: 25 application tests, 12 original isolated PostgreSQL checks, TypeScript, the production build, focused lint and four unauthenticated Chromium smoke checks passed. I did not personally write or execute those automated suites. Full-repository lint still has existing issues.
 
-Explain in your own words why UI filtering is insufficient for data security, how the weights produce the displayed total, why report snapshots retain their original assumptions, and how an honest rule-based demonstration differs from an AI API call.
+## Technical points I can explain from this work
 
-**My learning and evidence:** ___
+The scoring formula is transparent: each rating is divided by 5, multiplied by its criterion weight and by 100, then summed. Raising demand from 3 to 5 adds 12 points because demand has a 30% weight. Saved report snapshots retain the ratings and assumptions used at generation time, so later evaluation edits should not rewrite a previous report.
 
-## Remaining work / ownership
+The application uses illustrative market data and deterministic rule-based reports. I should describe it as a demo analysis feature, rather than claim it called a language model or produced verified market research. RLS provides a database-level ownership boundary; hiding records in the interface alone would not establish data isolation.
 
-| Remaining task | Responsible person | Due (CST) |
-|---|---|---|
-| Apply additive migration and live two-user validation | Unassigned — confirm with team | 1 Nov 2026 23:59 |
-| Rehearse actual-account demo and verify video | Unassigned — confirm with team | 1 Nov 2026 23:59 |
-| Confirm tutor/platform and any admin-view requirement | Student / confirm named owner | 1 Nov 2026 23:59 |
-| Complete personal Prompt Log / team evidence | Student / confirm named owner | 1 Nov 2026 23:59 |
-| Prepare paper diagrams, take real photographs, submit | Student / confirm named owner | 1 Nov 2026 23:59 |
+These are technical explanations supported by the implementation, not a substitute for my personal reflection. My own learning should be completed below.
 
-**Actual team allocation, meetings, tutor feedback and personal reflection:** ___
+## What remains and what I would improve
+
+The core workflows are implemented and the hosted database isolation check passed. Remaining evidence work includes a public-site smoke check after publication, stronger captured evidence for report retrieval and archive/restore, the two actual paper-diagram photographs, and confirmed team roles and tutor requirements. There is no administrator management view or live language-model provider in this implementation. Neither should be claimed as completed. Existing lint debt should be prioritised separately from this checkpoint's functional work.
+
+## Personal completion fields
+
+- The part I personally found most difficult, and why: [Complete in my own words.]
+- A correction or decision I made myself, with evidence: [Complete; do not invent a code fix.]
+- What I learned and can now do independently: [Complete in my own words.]
+- How I worked with named teammates: [Confirm actual names, roles and interactions.]
+- My remaining responsibilities and planned completion time: [Complete before 1 November 2026, 23:59 CST.]

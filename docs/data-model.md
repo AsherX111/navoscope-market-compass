@@ -1,6 +1,6 @@
 # Data model — Week 7
 
-Implemented 29 October 2026. The existing hosted Supabase project remains the only application database. Migration files describe intended schema; applying Week 7 to the hosted project is still pending.
+Implemented 29 October 2026. The existing hosted Supabase project remains the only application database. The student applied the Week 7 migration to the existing Lovable project; uploaded exports confirm all four tables with RLS enabled and a passing hosted database isolation check.
 
 ```mermaid
 erDiagram
