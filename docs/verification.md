@@ -1,6 +1,6 @@
 # Verification evidence — 29 October 2026
 
-Local branch: `feat/week7-market-workflows`. All commands below ran against the connected personal fork checkout. No deployment, hosted database migration or upstream modification occurred.
+Local branch: `feat/week7-market-workflows`. The automated commands below ran against the personal fork checkout during initial implementation. Later manual actions and evidence are recorded separately below; they do not change the scope of the original automated results.
 
 | Check actually run | Outcome | What it establishes / limit |
 |---|---|---|
@@ -28,10 +28,26 @@ The script uses loopback only for testing, does not create accounts or send mess
 
 ## Still unrun / requiring real configuration
 
-- Apply migration and verify live Supabase RLS/PostgREST with two actual test accounts.
+- Verify live Supabase RLS/PostgREST with two actual test accounts. The migration has now been applied; do not rerun it blindly.
 - Real signup, confirmation, username, password reset, login, avatar and logout acceptance.
-- Authenticated end-to-end browser sequence: explorer → evaluation → analysis → saved retrieval after browser refresh, back/forward, account switch, phone/keyboard behavior and network-loss recovery.
+- Independent hosted browser/API acceptance, complete Explorer search/filter/sort coverage, back/forward, account switch, phone/keyboard behavior and network-loss recovery. Guided persistence checks were student-reported as described below.
 - Original video playback in the intended Lovable hosting context.
 - Print/draw and photograph two paper diagrams, student reflection, team allocation, tutor confirmation and final submission.
 
 Use `demo-script.md`. Do not convert pending checks into passes merely because local code, mocked interactions or the migration file exist.
+
+## Subsequent manual evidence — 29 October 2026
+
+| Action / check | Recorded outcome | Evidence and limit |
+|---|---|---|
+| Existing Lovable database inspection | `profiles.id` and `profiles.display_name`; owner SELECT/UPDATE policies; RLS enabled | Uploaded `query-results-export-2026-10-29_14-38-33.csv`; no user rows were read by the inspection query. |
+| Additive migration executed by the student in Lovable SQL editor | Four application tables present, all with RLS enabled | Uploaded `query-results-export-2026-10-29_14-43-02.csv`: profiles, markets, opportunity_evaluations, market_analyses. This export confirms table/RLS state, not a full live access-policy test. |
+| Upstream code integration | PR #1 merged into AsherX111/main by the student | Uploaded GitHub screenshot shows Merged. No force-push was used by Codex. |
+| Lovable preview loads new features | Explorer and Opportunity Scoring visible | Uploaded preview screenshots; this is preview evidence, not published-site verification. |
+| Evaluation persistence after refresh | Student confirmed score, status and notes remained | Explicit student reply to the guided refresh checklist. No record values or credentials were exported. |
+| Analysis save/retrieval | Student reported success with a brief “ok” | Guided sequence included generation, save, refresh and retrieval. No independent browser capture/API verification of the saved report was supplied. |
+| Archive and restore | Student reported success with a brief “ok” | Guided UI sequence; live direct-API archive enforcement was not tested. |
+| Hosted cross-account isolation | Not tested | Explicitly deferred by the student. Local isolated PostgreSQL checks remain separate evidence. |
+| Website publication | Authorised by the student; not yet confirmed | No Lovable publish tool is available in this cloud session. A Git merge or working preview does not establish publication. |
+
+The initial cloud-proxy 403 and local video 404 were cloud/local observations, not evidence that the student's Lovable preview cannot use its backend/video. The background appears in preview screenshots; looping playback has not been independently verified.

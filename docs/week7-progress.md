@@ -14,22 +14,22 @@ The connected personal fork contained the actual Navoscope persistent black-and-
 - **Persistence/security implementation:** existing Supabase account identity retained; additive migration and SDK types added. Owner RLS/grants, input constraints, immutable identities and database-enforced archive protection. No second application database, browser-local fake accounts, self-elevation or provider secret in client code.
 - **Coursework artifacts:** model/flow diagrams, print-friendly two-page HTML, Kanban ledger, stack rationale, truthful four-column Prompt Log, reflection draft, demo script, database instructions and verification evidence.
 
-Code and local artifacts are implemented. Hosted persistence and authenticated product acceptance are **partially completed**, pending the actions below. See `verification.md` for passed checks and limits; local tests are not evidence of deployment.
+Code and coursework artifacts are implemented. The student subsequently applied the hosted migration, merged upstream PR #1, opened the updated Lovable preview and reported successful guided persistence and archive checks. Full hosted acceptance remains **partially completed**, particularly cross-account isolation. See `verification.md` for passed checks and limits; local tests are not evidence of deployment.
 
 ## Verification results
 
-25 application tests and 12 isolated PostgreSQL checks passed. TypeScript, production build and focused lint passed. Four real Chromium unauthenticated smoke assertions passed. Full repository lint still fails with 227 errors and 9 warnings from existing debt. Existing video path returns 404. Supabase through the current cloud proxy still returns CONNECT 403. No test account was fabricated or live migration applied.
+25 application tests and 12 isolated PostgreSQL checks passed. TypeScript, production build and focused lint passed. Four real Chromium unauthenticated smoke assertions passed. Full repository lint still fails with 227 errors and 9 warnings from existing debt. Existing video path returns 404. Supabase through the current cloud proxy still returns CONNECT 403. No test account was fabricated. The student subsequently applied the migration and uploaded its result; see verification.md for later evidence.
 
 ## Remaining blockers / exact handoff
 
-1. Maintainer applies the reviewed additive `0001_market_workflows.sql` to the **existing** Supabase project; verify baseline state first. Instructions: `database-setup.md`. No production data deletion is needed.
+1. **Completed by student:** additive migration applied in the existing Lovable database. Export confirms all four tables with RLS enabled. Do not rerun it blindly; database setup instructions are historical guidance for an unapplied project.
 2. Apply the previously saved environment network requirement for the existing Supabase host and retry the affected request. Authentication configuration exists, but current cloud access is still blocked.
-3. Student/maintainer uses actual test accounts for end-to-end save/refresh/retrieval, auth and two-user RLS checks. Complete `demo-script.md` and record actual observations.
+3. **Partially completed:** student confirmed preview evaluation persistence after refresh and reported analysis retrieval/archive-restore success. Hosted two-user/API isolation was explicitly deferred and remains unverified. Remaining acceptance must not be labelled passed.
 4. Obtain/verify the original video asset in Lovable or a separately authorized asset fix. This implementation did not change its resource address or invent a replacement.
 5. Confirm whether an administrator management view is mandatory. The inspected schema has no roles; the conditional administrator feature was not invented. If required, secure server-managed roles and views remain work.
 6. Optional later scope: real server-side AI provider. Current transparent fallback satisfies the requested demo option; no actual LLM call is claimed.
-7. Student fills personal Prompt Log/reflection fields, confirms actual team owners/tutor/platform requirements, prepares and photographs the two paper diagrams, rehearses and submits before the deadline.
+7. Prompt Log now records the student's actual actions and reports in English, drafted by Codex at the student's request. Personal reflection, confirmed team owners, tutor/platform requirements, paper diagrams, actual photographs and submission remain student tasks.
 
 ## Git / publication
 
-Dedicated local branch: `feat/week7-market-workflows`. Inspect `git status` / `git log -1` for the current commit state. No force-push, upstream changes, deployment, publication or production database mutation was performed. The working app in Lovable will not gain these changes until the authorized Git/review workflow is completed; do not claim the published site was updated.
+Code commit `c98470c` was pushed to the personal fork. The student created and merged upstream PR #1 into `AsherX111/main`; screenshots show the updated Lovable preview. The migration was executed by the student through the existing Lovable SQL editor. Documentation follow-up remains on `feat/week7-market-workflows` until separately integrated. The student has now authorised website publication for team access, but publication is not yet confirmed. No Lovable publication tool is available to Codex in this session. The intended public address is https://navoscope-market-compass.lovable.app/; do not assume it contains the new version until the Publish/Update action and public-site check succeed.
