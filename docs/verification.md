@@ -51,3 +51,7 @@ Use `demo-script.md`. Do not convert pending checks into passes merely because l
 | Website publication | Authorised by the student; not yet confirmed | No Lovable publish tool is available in this cloud session. A Git merge or working preview does not establish publication. |
 
 The initial cloud-proxy 403 and local video 404 were cloud/local observations, not evidence that the student's Lovable preview cannot use its backend/video. The background appears in preview screenshots; looping playback has not been independently verified.
+
+## Prepared hosted isolation check
+
+The rollback-only `scripts/sql/verify-hosted-isolation.sql` was added at the student's request. The isolated PostgreSQL harness successfully exercised it and confirmed unchanged market/evaluation/report row counts. It is ready to run in the original Lovable SQL editor, but no hosted result has yet been supplied. It uses two existing profiles with controlled SQL request claims; it does not create credentials, validate JWTs or certify browser account switching. The original 12 database checks still pass, plus this script regression check.

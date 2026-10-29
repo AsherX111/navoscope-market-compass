@@ -136,6 +136,24 @@ try {
       "test assumptions",
     );
   });
+  await db.exec("RESET ROLE");
+  const fixtureCountsBefore = (
+    await db.query(
+      "SELECT (SELECT count(*) FROM markets) AS markets, (SELECT count(*) FROM opportunity_evaluations) AS evaluations, (SELECT count(*) FROM market_analyses) AS analyses",
+    )
+  ).rows;
+  await db.exec(
+    await readFile(new URL("./sql/verify-hosted-isolation.sql", import.meta.url), "utf8"),
+  );
+  const fixtureCountsAfter = (
+    await db.query(
+      "SELECT (SELECT count(*) FROM markets) AS markets, (SELECT count(*) FROM opportunity_evaluations) AS evaluations, (SELECT count(*) FROM market_analyses) AS analyses",
+    )
+  ).rows;
+  assert.deepEqual(fixtureCountsAfter, fixtureCountsBefore);
+  console.log(
+    "PASS hosted isolation script regression: no fixture rows retained (local engine only)",
+  );
   console.log(`${checks} isolated database checks passed. Hosted Supabase was not contacted.`);
 } finally {
   await db.close();
