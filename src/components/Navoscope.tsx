@@ -245,7 +245,7 @@ export function NavoscopeApp() {
     window.location.replace("/");
   };
 
-  const pages = [1, 2, 3, 4];
+  const pages = [1, 2, 3];
   const entries = activePage === null ? pages : pages.filter((p) => p !== activePage);
 
   let dialogBody: ReactNode = null;
