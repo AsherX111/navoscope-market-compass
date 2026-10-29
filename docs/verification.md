@@ -1,0 +1,37 @@
+# Verification evidence — 29 October 2026
+
+Local branch: `feat/week7-market-workflows`. All commands below ran against the connected personal fork checkout. No deployment, hosted database migration or upstream modification occurred.
+
+| Check actually run | Outcome | What it establishes / limit |
+|---|---|---|
+| `npm test` | PASS — 5 files, 25 tests | Existing 9 tests plus 16 scoring/discovery/report/component checks. Includes form changes, filtering, navigation callback, save/remount/retrieve, archive/restore and error/retry. Component persistence boundary is mocked, not live cloud. |
+| `./node_modules/.bin/tsc --noEmit` | PASS | Application and test TypeScript compiles. |
+| `npm run build` | PASS | Client/SSR/Nitro production output built; no deployment. Existing large-chunk and tsconfig-paths notices remain. |
+| `./node_modules/.bin/eslint src/lib/market src/components/market src/test/market-*.test* src/integrations/supabase/types.ts scripts/verify-market-db.mjs` | PASS | Focused new/extended modules and database harness. |
+| `npm run lint` | FAIL — 227 errors, 9 warnings | Remaining existing formatting and refresh-export warnings, mainly legacy files. Initial onboarding baseline was 282 errors, 9 warnings. New files are formatted; no broad legacy formatting rewrite was performed. |
+| `PGLITE_MODULE=/workspace/.navoscope-db-test/node_modules/@electric-sql/pglite/dist/index.js node scripts/verify-market-db.mjs` | PASS — 12 checks | Real PostgreSQL migration/constraint/trigger/RLS behavior in disposable PGlite. No hosted service contacted; fixture auth roles are not real Supabase sessions. |
+| System Chromium + external Playwright script (`scripts/verify-browser.mjs`) | PASS — 4 smoke assertions | Real landing/navigation redirects, direct protected route redirect, 375px layout/Escape dialog close, no uncaught browser exceptions in those unauthenticated flows. Does not certify authenticated feature screens or live cloud persistence. |
+| Read-only Supabase `/auth/v1/settings` through inherited proxy | BLOCKED — CONNECT 403 Forbidden | Existing configured host still denied by current runtime policy. No new credentials requested. |
+| Original local video resource URL | FAIL — HTTP 404 | Existing Lovable `/__l5e/assets-v1/.../navoscope-loop.mp4` is absent here; no MP4 is in the checkout. This was present before feature changes. |
+| `git diff --check` | PASS | No whitespace-error hunks. |
+
+## Repeatable browser smoke check
+
+With the dev server started from this repository and system Chromium installed:
+
+```sh
+npm install --prefix /tmp/navoscope-browser-check --no-audit --no-fund playwright-core@1.56.1
+PLAYWRIGHT_MODULE=/tmp/navoscope-browser-check/node_modules/playwright-core/index.mjs node scripts/verify-browser.mjs
+```
+
+The script uses loopback only for testing, does not create accounts or send messages, and reports failures via a nonzero exit. Browser resource-console errors from the missing original video are a known baseline limitation; the script's exception check covers uncaught JavaScript exceptions, not a claim of a clean console across every route.
+
+## Still unrun / requiring real configuration
+
+- Apply migration and verify live Supabase RLS/PostgREST with two actual test accounts.
+- Real signup, confirmation, username, password reset, login, avatar and logout acceptance.
+- Authenticated end-to-end browser sequence: explorer → evaluation → analysis → saved retrieval after browser refresh, back/forward, account switch, phone/keyboard behavior and network-loss recovery.
+- Original video playback in the intended Lovable hosting context.
+- Print/draw and photograph two paper diagrams, student reflection, team allocation, tutor confirmation and final submission.
+
+Use `demo-script.md`. Do not convert pending checks into passes merely because local code, mocked interactions or the migration file exist.
