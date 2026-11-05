@@ -1,5 +1,22 @@
 # Verification evidence — 29 October 2026
 
+## Week 8 public introduction — 5 November 2026
+
+AI-assisted implementation; no publication, database migration or authentication-setting change was performed.
+
+| Check actually run | Outcome | Scope / limitation |
+|---|---|---|
+| `bunx vitest run` | PASS — 5 files, 29 tests | All existing tests plus four concrete public-example/catalog checks: demand 30 points, remaining four ratings 42 points, total 72/100, six opportunities/five criteria. Workspace persistence tests retain their mocked boundary. |
+| Harness automatic TypeScript/build checks | PASS — latest log says `build OK` | No manual build or typecheck commands were run; this environment runs those checks automatically after edits. |
+| Headless Playwright public walkthrough at localhost:8080 | PASS | Public hero is visible while signed out; three numbered nav links and exactly three usage steps; static total 72; primary CTA redirects to login with /page-1 as its destination; signup dialog opens; Escape returns home. No uncaught JavaScript errors in these flows. |
+| Persistent shell / overlay walkthrough | PASS | Same video DOM node before/after CTA, auth navigation and return home. Existing public /page-4 opens its overlay and makes introduction hidden and inert; Main Page restores it. No claim of a new authenticated end-to-end workspace session. |
+| Screenshots and layout checks | PASS | 320×740, 375×812 and 1920×1080 viewports have no horizontal overflow, and the footer is reachable by scrolling. Desktop 1280×1800 screenshot reviewed; mobile hero, footer and login dialog reviewed. |
+| Original background video playback | NOT VERIFIED | Source and video element preserved. Headless browser reported readyState 0; this check establishes node persistence, not decoded playback or a visibly moving ribbon. |
+
+Screenshots and walkthrough script are temporary verification files under `/tmp/browser/week8/`. Phone/WeChat testing, actual early-user feedback, live language-model calls, verified market research and independently student-authored coding are not claimed. Ziheng Yang's promotional-page assignment was supplied; student verification beyond that remains pending. Updated homepage metadata reaches the published URL only after a separate publish.
+
+## Earlier Week 7 evidence
+
 Local branch: `feat/week7-market-workflows`. The automated commands below ran against the personal fork checkout during initial implementation. Later manual actions and evidence are recorded separately below; they do not change the scope of the original automated results.
 
 | Check actually run | Outcome | What it establishes / limit |

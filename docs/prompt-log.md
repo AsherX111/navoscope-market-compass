@@ -15,4 +15,12 @@ Source: the student's uploaded “Navoscope Market Compass — Week 7 Implementa
 
 ## Evidence and authorship note
 
+## Week 8 — Public landing-page introduction
+
+| Prompt | Expected | Got | Fixed by Me |
+|---|---|---|---|
+| “Implement the ENT207TC Week 8 PUBLIC landing-page introduction in this EXISTING project.” Preserve the persistent video, hosted auth, workspace flows and routes; add public problem/solution copy, three usage steps, a clearly illustrative 72/100 example, team introduction and honest limitations. | A publicly readable, mobile-scrollable promotional homepage with a “Try Market Explorer” CTA to the existing protected /page-1 workspace, without a new logo or database/auth changes. | AI-assisted implementation added the introduction within the persistent shell, scoped black/silver styles, a static preview derived from the existing scoring formula and homepage SEO. Automated and browser verification outcomes are recorded separately; this entry does not claim publication, verified market research or a live AI call. | The student only confirmed that Ziheng Yang is assigned the promotional landing page. No independent student coding or personal code fix is claimed. Phone/WeChat verification is pending; no actual feedback, tester numbers or phone/WeChat test outcome is claimed. |
+
+### Prior evidence and authorship note
+
 The first-person entries above record actions the student actually performed or reported in this conversation. Codex drafted the English wording at the student's request; these are not independently authored student reflections. Brief “ok” replies are treated as reported outcomes, not equivalent to captured browser/API evidence. Personal learning, team contributions, approvals and photographs have not been invented.
