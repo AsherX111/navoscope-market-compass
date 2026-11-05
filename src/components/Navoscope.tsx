@@ -2,6 +2,7 @@ import { Link, useLocation, useRouter } from "@tanstack/react-router";
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 
 import { MarketWorkspace } from "@/components/market/MarketWorkspace";
+import { PublicIntroduction } from "@/components/PublicIntroduction";
 import videoAsset from "@/assets/navoscope-loop.mp4.asset.json";
 import { supabase } from '@/integrations/supabase/client';
 import { useNavoscopeAuth } from '@/hooks/use-navoscope-auth';
@@ -291,7 +292,7 @@ export function NavoscopeApp() {
 
   return (
     <>
-      <div id="landing" className={open ? "is-leaving" : undefined}>
+      <div id="landing" className={`public-landing${open ? " is-leaving" : ""}`}>
         <video
           ref={videoRef}
           className="hero-video"
@@ -351,15 +352,7 @@ export function NavoscopeApp() {
             ) : null}
           </nav>
         </header>
-        <main className="hero" inert={open}>
-          <div className="hero-inner">
-            <h1>Navoscope</h1>
-            <p className="tagline">
-              See clearly. <em>Move forward.</em>
-            </p>
-            <p className="category">AI-assisted market intelligence.</p>
-          </div>
-        </main>
+        <PublicIntroduction workspaceOpen={open} />
       </div>
       <main
         className={`page-transition${open ? " is-active" : ""}${instant ? " is-instant" : ""}`}

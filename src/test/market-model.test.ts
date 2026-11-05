@@ -10,6 +10,24 @@ import {
 } from "@/lib/market/model";
 
 describe("opportunity scoring", () => {
+  it("matches the public illustrative demand contribution of 30 points", () => {
+    const demand = criteria.find(({ key }) => key === "demand");
+    expect(demand?.weight).toBe(0.3);
+    expect((5 / 5) * (demand?.weight ?? 0) * 100).toBe(30);
+  });
+  it("matches the public example's other four ratings at 3/5 contributing 42 points", () => {
+    const others = criteria.filter(({ key }) => key !== "demand");
+    expect(others).toHaveLength(4);
+    expect(others.reduce((sum, { weight }) => sum + weight, 0)).toBeCloseTo(0.7);
+    expect(others.reduce((sum, { weight }) => sum + (3 / 5) * weight * 100, 0)).toBeCloseTo(42);
+  });
+  it("keeps the public illustrative total at 72 out of 100", () => {
+    expect(weightedScore({ demand: 5, growth: 3, fit: 3, feasibility: 3, resilience: 3 })).toBe(72);
+  });
+  it("keeps the public six-opportunity catalog and five-rating model accurate", () => {
+    expect(markets).toHaveLength(6);
+    expect(criteria).toHaveLength(5);
+  });
   it("uses documented weights, boundaries and changed inputs", () => {
     expect(criteria.reduce((n, c) => n + c.weight, 0)).toBe(1);
     expect(weightedScore({ demand: 1, growth: 1, fit: 1, feasibility: 1, resilience: 1 })).toBe(20);
