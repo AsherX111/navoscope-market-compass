@@ -2,7 +2,16 @@ import { domelMarkets } from "./domel-catalog";
 export const statuses = ["New", "Researching", "Scored", "Reviewed", "Archived"] as const;
 export type WorkStatus = (typeof statuses)[number];
 export type Catalog = "domel" | "legacy" | "all";
-export type SourceEvidence = { url: string; title: string; publisher: "Domel"; publicationDate: string | null; accessedDate: string; sourceType: "Manufacturer statement"; limitations: string; eventDates?: string };
+export type SourceEvidence = {
+  url: string;
+  title: string;
+  publisher: "Domel";
+  publicationDate: string | null;
+  accessedDate: string;
+  sourceType: "Manufacturer statement";
+  limitations: string;
+  eventDates?: string;
+};
 export type Market = {
   id: string;
   name: string;
@@ -100,7 +109,11 @@ export function catalogMarkets(catalog: Catalog = "domel") {
   return catalog === "all" ? markets : catalog === "legacy" ? legacyMarkets : domelMarkets;
 }
 export function metricText(value: number | null, metric: "size" | "growth") {
-  return value === null ? "Not established" : metric === "size" ? `Illustrative USD ${value}bn` : `Illustrative ${value}%`;
+  return value === null
+    ? "Not established"
+    : metric === "size"
+      ? `Illustrative USD ${value}bn`
+      : `Illustrative ${value}%`;
 }
 export const criteria = [
   {
@@ -219,7 +232,9 @@ export function generateAnalysis(market: Market, scores: Scores, assumptions: st
     mode: "Rule-based demo — no language model called",
     summary: `${market.name}: ${market.summary} Size: ${metricText(market.size, "size")}; annual growth: ${metricText(market.growth, "growth")}.`,
     sources: market.sources?.map((source) => ({ ...source })),
-    applicability: market.sources?.length ? "Manufacturer-sourced application relevance is separate from user-rated attractiveness; no customer demand or commercial validation is established." : "Legacy illustrative teaching assumptions, not verified research.",
+    applicability: market.sources?.length
+      ? "Manufacturer-sourced application relevance is separate from user-rated attractiveness; no customer demand or commercial validation is established."
+      : "Legacy illustrative teaching assumptions, not verified research.",
     questions: [...(market.questions ?? [])],
     strengths: [
       ...market.drivers,
@@ -261,7 +276,9 @@ export function searchMarkets(options: {
   return catalogMarkets(options.catalog)
     .filter(
       (m) =>
-        `${m.name} ${m.summary} ${m.industry} ${m.drivers.join(" ")} ${m.sources?.map((s) => `${s.publisher} ${s.title} ${s.url}`).join(" ") ?? ""}`.toLowerCase().includes(q) &&
+        `${m.name} ${m.summary} ${m.industry} ${m.drivers.join(" ")} ${m.sources?.map((s) => `${s.publisher} ${s.title} ${s.url}`).join(" ") ?? ""}`
+          .toLowerCase()
+          .includes(q) &&
         (!options.industry || m.industry === options.industry) &&
         (!options.region || m.region === options.region) &&
         (options.minGrowth <= 0 || (m.growth !== null && m.growth >= options.minGrowth)),

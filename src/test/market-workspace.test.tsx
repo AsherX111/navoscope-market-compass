@@ -53,6 +53,8 @@ describe("market workspace interactions (mock cloud boundary)", () => {
   it("searches, combines filters, sorts, opens details and navigates to scoring", async () => {
     render(<MarketWorkspace page={1} userId="alice" />);
     await ready();
+    expect(screen.getByText("20 markets found")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Catalog / evidence"), { target: { value: "legacy" } });
     fireEvent.change(screen.getByLabelText("Search markets"), { target: { value: "cooling" } });
     fireEvent.change(screen.getByLabelText("Industry"), { target: { value: "Energy" } });
     fireEvent.change(screen.getByLabelText("Minimum growth"), { target: { value: "15" } });
@@ -167,6 +169,8 @@ describe("market workspace interactions (mock cloud boundary)", () => {
     ];
     render(<MarketWorkspace page={2} userId="alice" />);
     await ready();
+    fireEvent.click(screen.getByRole("button", { name: "Open saved evaluation" }));
+    expect(screen.getByLabelText("Catalog / evidence")).toHaveValue("legacy");
     expect(screen.getByLabelText("Research notes")).toBeDisabled();
     fireEvent.change(screen.getByLabelText("Status", { exact: true }), {
       target: { value: "Researching" },
@@ -175,4 +179,23 @@ describe("market workspace interactions (mock cloud boundary)", () => {
     await screen.findByText("Evaluation saved to your account.");
     expect(screen.getByLabelText("Research notes")).toBeEnabled();
   });
+});
+
+it("carries explorer selection into scoring and sends the sourced FK ID through persistence", async () => {
+  const view = render(<MarketWorkspace page={1} userId="alice" />);
+  await ready();
+  fireEvent.change(screen.getByLabelText("Search markets"), { target: { value: "hydrogen" } });
+  fireEvent.click(screen.getByRole("button", { name: "Details: Hydrogen recirculation pumps" }));
+  fireEvent.click(screen.getByRole("button", { name: "Evaluate this market" }));
+  expect(mock.navigate).toHaveBeenCalledWith({ to: "/page-2" });
+  view.rerender(<MarketWorkspace page={2} userId="alice" />);
+  expect(screen.getByLabelText("Selected market")).toHaveValue("domel-hydrogen");
+  fireEvent.click(screen.getByRole("button", { name: "Save evaluation" }));
+  await screen.findByText("Evaluation saved to your account.");
+  expect(mock.evaluations[0]?.market_id).toBe("domel-hydrogen");
+  view.unmount();
+  render(<MarketWorkspace page={2} userId="alice" />);
+  await ready();
+  fireEvent.click(screen.getByRole("button", { name: "Open saved evaluation" }));
+  expect(screen.getByLabelText("Selected market")).toHaveValue("domel-hydrogen");
 });

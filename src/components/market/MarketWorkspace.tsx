@@ -182,7 +182,9 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
         : "Analysis & Recommendations";
   if (!market) return <p role="alert">Selected application is unavailable.</p>;
   const pickerMarkets = catalogMarkets(catalog);
-  const options = pickerMarkets.some((m) => m.id === selected) ? pickerMarkets : [market, ...pickerMarkets];
+  const options = pickerMarkets.some((m) => m.id === selected)
+    ? pickerMarkets
+    : [market, ...pickerMarkets];
   return (
     <section className="market-workspace" aria-label={title}>
       <div className="workspace-heading">
@@ -201,7 +203,8 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
         </nav>
         <p>
           Manufacturer statements establish application relevance only, not market size, growth or
-          demand. Ratings are user judgements; reports are rule-based demos, not live AI. Legacy data is illustrative.
+          demand. Ratings are user judgements; reports are rule-based demos, not live AI. Legacy
+          data is illustrative.
         </p>
       </div>
       {loading && <p role="status">Loading your saved work…</p>}
@@ -297,14 +300,22 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
                 </button>
                 {detail === m.id && (
                   <div>
-                    <h3>{m.sources?.length ? "Source-grounded applicability" : "Legacy illustrative drivers"}</h3>
+                    <h3>
+                      {m.sources?.length
+                        ? "Source-grounded applicability"
+                        : "Legacy illustrative drivers"}
+                    </h3>
                     {m.sources?.length ? <p>{m.summary}</p> : null}
                     <ul>
                       {m.drivers.map((d) => (
                         <li key={d}>{d}</li>
                       ))}
                     </ul>
-                    <h3>{m.sources?.length ? "Questions to validate · analyst-authored" : "Legacy illustrative risks"}</h3>
+                    <h3>
+                      {m.sources?.length
+                        ? "Questions to validate · analyst-authored"
+                        : "Legacy illustrative risks"}
+                    </h3>
                     <ul>
                       {(m.questions ?? m.risks).map((r) => (
                         <li key={r}>{r}</li>
@@ -498,7 +509,16 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
                       <li key={s}>{s}</li>
                     ))}
                   </ul>
-                  {report.questions?.length ? <><h3>Questions to validate · analyst-authored</h3><ul>{report.questions.map((q) => <li key={q}>{q}</li>)}</ul></> : null}
+                  {report.questions?.length ? (
+                    <>
+                      <h3>Questions to validate · analyst-authored</h3>
+                      <ul>
+                        {report.questions.map((q) => (
+                          <li key={q}>{q}</li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : null}
                   <h3>Assumptions used</h3>
                   <p className="preserve-lines">{report.assumptions}</p>
                   <h3>Recommendations</h3>
@@ -611,9 +631,27 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
 
 function Sources({ sources }: { sources?: SourceEvidence[] }) {
   if (!sources?.length) return null;
-  return <div className="evidence-sources"><h3>Source snapshot</h3>{sources.map((source) => <p key={source.url}>
-    <a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a><br />
-    {source.publisher} · {source.sourceType} · Published: {source.publicationDate ?? "Undated"} · Accessed: {source.accessedDate}
-    {source.eventDates ? <><br />Event: {source.eventDates}</> : null}<br />{source.limitations}
-  </p>)}</div>;
+  return (
+    <div className="evidence-sources">
+      <h3>Source snapshot</h3>
+      {sources.map((source) => (
+        <p key={source.url}>
+          <a href={source.url} target="_blank" rel="noopener noreferrer">
+            {source.title}
+          </a>
+          <br />
+          {source.publisher} · {source.sourceType} · Published:{" "}
+          {source.publicationDate ?? "Undated"} · Accessed: {source.accessedDate}
+          {source.eventDates ? (
+            <>
+              <br />
+              Event: {source.eventDates}
+            </>
+          ) : null}
+          <br />
+          {source.limitations}
+        </p>
+      ))}
+    </div>
+  );
 }
