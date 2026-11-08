@@ -629,7 +629,7 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
   );
 }
 
-function Sources({ sources }: { sources?: SourceEvidence[] }) {
+function Sources({ sources }: { sources: SourceEvidence[] | undefined }) {
   if (!sources?.length) return null;
   return (
     <div className="evidence-sources">

@@ -231,7 +231,7 @@ export function generateAnalysis(market: Market, scores: Scores, assumptions: st
   return {
     mode: "Rule-based demo — no language model called",
     summary: `${market.name}: ${market.summary} Size: ${metricText(market.size, "size")}; annual growth: ${metricText(market.growth, "growth")}.`,
-    sources: market.sources?.map((source) => ({ ...source })),
+    sources: (market.sources ?? []).map((source) => ({ ...source })),
     applicability: market.sources?.length
       ? "Manufacturer-sourced application relevance is separate from user-rated attractiveness; no customer demand or commercial validation is established."
       : "Legacy illustrative teaching assumptions, not verified research.",

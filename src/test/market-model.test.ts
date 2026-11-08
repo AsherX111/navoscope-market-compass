@@ -100,11 +100,11 @@ describe("rule-based analysis", () => {
       "Limited pilot budget",
     );
     expect(report.mode).toContain("no language model called");
-    expect(report.summary).toContain(domelMarkets[0] as NonNullable<typeof domelMarkets[0]>.name);
+    expect(report.summary).toContain("AGV transport drives");
     expect(report.assumptions).toBe("Limited pilot budget");
     expect(report.category).toBe("Protect");
     expect(report.risks.join(" ")).toContain("Risk resilience");
-    expect(report.gaps.join(" ")).toContain("not verified market research");
+    expect(report.gaps.join(" ")).toContain("Not verified market research");
     expect(report.actions.length).toBeGreaterThan(2);
   });
   it("requires nonempty bounded assumptions", () => {
