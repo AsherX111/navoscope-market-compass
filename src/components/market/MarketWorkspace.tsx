@@ -19,6 +19,7 @@ import {
   type Scores,
   type WorkStatus,
 } from "@/lib/market/model";
+import { generateAiAnalysis } from "@/lib/market/analysis";
 import { loadWorkspace, saveAnalysis, saveEvaluation, storageError } from "@/lib/market/storage";
 
 export function MarketWorkspace({ page, userId }: { page: number; userId: string }) {
@@ -46,6 +47,7 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [revision, setRevision] = useState(0);
   const [savedFilter, setSavedFilter] = useState("");
   const [savedSort, setSavedSort] = useState("updated");
@@ -158,6 +160,28 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
       setSavedReportId(null);
     } catch (e) {
       setError((e as Error).message);
+    }
+  }
+  async function generateWithAi() {
+    setError("");
+    setMessage("");
+    setGenerating(true);
+    try {
+      const result = await generateAiAnalysis({
+        data: { marketId: selected, scores, assumptions },
+      });
+      if ("error" in result) {
+        setError(result.error);
+        return;
+      }
+      setReport(result);
+      setReportMarket(selected);
+      setReportScores({ ...scores });
+      setSavedReportId(null);
+    } catch {
+      setError("AI analysis could not start. Check your sign-in and assumptions, then try again.");
+    } finally {
+      setGenerating(false);
     }
   }
   const savedResults = evaluations
@@ -438,17 +462,20 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
           ) : (
             <div className="workspace-columns">
               <section className="market-card">
-                <h2>Generate a demo report</h2>
+                <h2>Generate a market report</h2>
                 <p>
-                  No AI provider is configured. This deterministic rule-based report uses the
-                  selected market and the current ratings ({total}/100). It does not call a language
-                  model.
+                  Generate an AI-assisted narrative or a rule-based demo using the selected market
+                  and current ratings ({total}/100). AI analysis sends your assumptions to DeepSeek.
                 </p>
                 <Link to="/page-2">Edit scoring inputs</Link>
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    generate();
+                    if ((e.nativeEvent as SubmitEvent).submitter?.getAttribute("value") === "ai") {
+                      void generateWithAi();
+                    } else {
+                      generate();
+                    }
                   }}
                 >
                   <label>
@@ -461,7 +488,12 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
                       placeholder="Capabilities, target customers, budget and assumptions to verify"
                     />
                   </label>
-                  <button type="submit">Generate demo analysis</button>
+                  <button type="submit" value="ai" disabled={generating || busy}>
+                    {generating ? "Generating…" : "Generate AI analysis"}
+                  </button>
+                  <button type="submit" disabled={generating || busy}>
+                    Generate demo analysis
+                  </button>
                 </form>
                 <p>Current recommendation: {advice.category}</p>
               </section>
@@ -520,7 +552,13 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
                     disabled={busy || loading || !!loadError || !!savedReportId}
                     onClick={() => void persistReport()}
                   >
-                    {savedReportId ? "Saved report" : busy ? "Saving…" : "Save this demo report"}
+                    {savedReportId
+                      ? "Saved report"
+                      : busy
+                        ? "Saving…"
+                        : report.mode.startsWith("AI")
+                          ? "Save this AI report"
+                          : "Save this demo report"}
                   </button>
                 </article>
               )}
