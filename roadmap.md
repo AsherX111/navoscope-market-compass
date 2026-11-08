@@ -1,5 +1,5 @@
-# Week 8 public introduction
-- [x] Implement public introduction in persistent shell, scoped styles and homepage SEO.
-- [x] Append honest four-column prompt log and verify public page, CTA and existing tests.
-
-Prior hosted authentication implementation and its historical limitations are recorded in docs/verification.md; database/auth changes are outside this request.
+# Domel research catalog
+- [ ] Implement sourced default 20 and explicit legacy 6 with nullable metrics and provenance.
+- [ ] Apply additive hosted catalog change and verify IDs without altering saved work or access policies.
+- [ ] Verify model, selection/persistence, public page and source links; document observed versus untested results.
+- [ ] Report repository sync limitations and commit identity; do not publish.

@@ -1,20 +1,35 @@
+import { domelMarkets } from "./domel-catalog";
 export const statuses = ["New", "Researching", "Scored", "Reviewed", "Archived"] as const;
 export type WorkStatus = (typeof statuses)[number];
+export type Catalog = "domel" | "legacy" | "all";
+export type SourceEvidence = {
+  url: string;
+  title: string;
+  publisher: "Domel";
+  publicationDate: string | null;
+  accessedDate: string;
+  sourceType: "Manufacturer statement";
+  limitations: string;
+  eventDates?: string;
+};
 export type Market = {
   id: string;
   name: string;
   industry: string;
   region: string;
-  size: number;
-  growth: number;
+  size: number | null;
+  growth: number | null;
   summary: string;
   drivers: string[];
   risks: string[];
   evidence: string;
+  catalog?: "domel" | "legacy";
+  sources?: SourceEvidence[];
+  questions?: string[];
 };
 const evidence =
   "Illustrative teaching dataset, authored for this MVP. All sizes (USD billions), growth rates and scenarios are invented assumptions, not verified market research.";
-export const markets: Market[] = [
+export const legacyMarkets: Market[] = [
   {
     id: "eu-heat-pumps",
     name: "European heat pumps",
@@ -88,6 +103,18 @@ export const markets: Market[] = [
     evidence,
   },
 ];
+export const markets: Market[] = [...domelMarkets, ...legacyMarkets];
+export { domelMarkets };
+export function catalogMarkets(catalog: Catalog = "domel") {
+  return catalog === "all" ? markets : catalog === "legacy" ? legacyMarkets : domelMarkets;
+}
+export function metricText(value: number | null, metric: "size" | "growth") {
+  return value === null
+    ? "Not established"
+    : metric === "size"
+      ? `Illustrative USD ${value}bn`
+      : `Illustrative ${value}%`;
+}
 export const criteria = [
   {
     key: "demand",
@@ -174,6 +201,9 @@ export type Evaluation = {
 export type Report = {
   mode: "Rule-based demo — no language model called";
   summary: string;
+  sources?: SourceEvidence[];
+  applicability?: string;
+  questions?: string[];
   strengths: string[];
   risks: string[];
   fit: string;
@@ -200,12 +230,17 @@ export function generateAnalysis(market: Market, scores: Scores, assumptions: st
   const weak = criteria.filter(({ key }) => scores[key] <= 2).map(({ label }) => label);
   return {
     mode: "Rule-based demo — no language model called",
-    summary: `${market.name}: ${market.summary} Illustrative size: USD ${market.size}bn; illustrative annual growth: ${market.growth}%.`,
+    summary: `${market.name}: ${market.summary} Size: ${metricText(market.size, "size")}; annual growth: ${metricText(market.growth, "growth")}.`,
+    sources: (market.sources ?? []).map((source) => ({ ...source })),
+    applicability: market.sources?.length
+      ? "Manufacturer-sourced application relevance is separate from user-rated attractiveness; no customer demand or commercial validation is established."
+      : "Legacy illustrative teaching assumptions, not verified research.",
+    questions: [...(market.questions ?? [])],
     strengths: [
       ...market.drivers,
       ...criteria
         .filter(({ key }) => scores[key] >= 4)
-        .map(({ label }) => `User-rated strength: ${label}.`),
+        .map(({ label }) => `User-rated attractiveness: ${label}.`),
     ],
     risks: [
       ...market.risks,
@@ -214,13 +249,13 @@ export function generateAnalysis(market: Market, scores: Scores, assumptions: st
     fit: `Strategic fit ${scores.fit}/5; delivery feasibility ${scores.feasibility}/5. These are user judgments, not verified feasibility findings.`,
     gaps: [
       market.evidence,
-      "Verify customer demand, addressable segments, competitor pricing and compliance requirements with dated primary sources.",
+      "Not established by these sources: market size, growth, customer demand, contracts or competitor comparisons. Not verified market research. Verify customer demand, addressable segments, competitor pricing and compliance requirements with dated primary sources.",
       "Validate the user's assumptions independently before using this report.",
     ],
     actions: [
       reason,
       ...weak.map((label) => `Assign an owner and collect evidence for ${label.toLowerCase()}.`),
-      `Interview three potential customers in ${market.region} and document purchasing constraints.`,
+      "Questions to validate: Which potential customers have purchasing constraints and unmet requirements?",
       "Set a pilot budget and review date before committing resources.",
     ],
     category,
@@ -235,21 +270,30 @@ export function searchMarkets(options: {
   region: string;
   minGrowth: number;
   sort: string;
+  catalog?: Catalog;
 }) {
   const q = options.query.trim().toLowerCase();
-  return markets
+  return catalogMarkets(options.catalog)
     .filter(
       (m) =>
-        `${m.name} ${m.summary} ${m.industry} ${m.drivers.join(" ")}`.toLowerCase().includes(q) &&
+        `${m.name} ${m.summary} ${m.industry} ${m.drivers.join(" ")} ${m.sources?.map((s) => `${s.publisher} ${s.title} ${s.url}`).join(" ") ?? ""}`
+          .toLowerCase()
+          .includes(q) &&
         (!options.industry || m.industry === options.industry) &&
         (!options.region || m.region === options.region) &&
-        m.growth >= options.minGrowth,
+        (options.minGrowth <= 0 || (m.growth !== null && m.growth >= options.minGrowth)),
     )
     .sort((a, b) =>
       options.sort === "size"
-        ? b.size - a.size
+        ? compareMetric(a.size, b.size) || a.name.localeCompare(b.name)
         : options.sort === "growth"
-          ? b.growth - a.growth
+          ? compareMetric(a.growth, b.growth) || a.name.localeCompare(b.name)
           : a.name.localeCompare(b.name),
     );
+}
+
+function compareMetric(a: number | null, b: number | null) {
+  if (a === null) return b === null ? 0 : 1;
+  if (b === null) return -1;
+  return b - a;
 }

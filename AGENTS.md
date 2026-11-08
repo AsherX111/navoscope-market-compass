@@ -15,3 +15,5 @@
 - Numbered pages 1–3 and their default alias live under the client-only authenticated layout; the persistent shell suppresses their curtain until a verified SDK user and profile are available. Why: direct loads must be gated without remounting the background video.
 - Visual styles are the original CSS carried over in `src/styles.css`. Why: the imported app is the source of truth for the design.
 - Public introduction content is a child of the persistent shell, hidden and inert while its workspace is open; its CSS is scoped to public classes and tokens. Why: public scrolling must not remount the video or expose homepage controls behind the workspace.
+- Application catalogs and provenance are browser-safe data modules; the combined resolver preserves legacy IDs while catalog selectors default to sourced records. Why: existing FK-backed saved work and immutable report JSON must stay readable.
+- Reports snapshot optional source metadata inside existing JSON and render it defensively. Why: old reports lack provenance fields and must remain readable without backfilling or rewriting them.
