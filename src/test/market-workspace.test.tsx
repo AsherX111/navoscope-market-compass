@@ -50,6 +50,12 @@ async function ready() {
   );
 }
 describe("market workspace interactions (mock cloud boundary)", () => {
+  it.each([1, 2, 3])("does not duplicate the top navigation inside workspace %s", async (page) => {
+    render(<MarketWorkspace page={page} userId="alice" />);
+    await ready();
+    expect(screen.queryByRole("navigation", { name: "Market workflow" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+  });
   it("searches, combines filters, sorts, opens details and navigates to scoring", async () => {
     render(<MarketWorkspace page={1} userId="alice" />);
     await ready();
