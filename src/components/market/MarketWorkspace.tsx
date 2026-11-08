@@ -190,17 +190,6 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
       <div className="workspace-heading">
         <p className="eyebrow">NAVOSCOPE / MARKET COMPASS</p>
         <h1>{title}</h1>
-        <nav aria-label="Market workflow">
-          <Link to="/page-1" aria-current={page === 1 ? "page" : undefined}>
-            1 · Explore
-          </Link>
-          <Link to="/page-2" aria-current={page === 2 ? "page" : undefined}>
-            2 · Score
-          </Link>
-          <Link to="/page-3" aria-current={page === 3 ? "page" : undefined}>
-            3 · Analyse
-          </Link>
-        </nav>
         <p>
           Manufacturer statements establish application relevance only, not market size, growth or
           demand. Ratings are user judgements; reports are rule-based demos, not live AI. Legacy
