@@ -1,4 +1,4 @@
-const description = "Navoscope — AI-assisted market intelligence designed for Domel.";
+const description = "Navoscope student prototype: Domel-related application evidence and user-rated opportunities. Rule-based demo, no live model or active industry partner.";
 
 export function navoscopeHead(title: string, pageDescription = description) {
   return {

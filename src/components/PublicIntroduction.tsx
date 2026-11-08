@@ -37,7 +37,7 @@ export function PublicIntroduction({ workspaceOpen }: { workspaceOpen: boolean }
         <div className="public-container">
           <div className="public-section-heading"><p className="public-label">02 / From opportunity to reasoning</p><h2 id="public-steps-title">Three steps. One place.</h2></div>
           <ol className="public-steps">
-            <li><span className="public-step-number" aria-hidden="true">01</span><h3>Explore a market</h3><p>Start with six illustrative opportunities. Narrow your search by keyword, industry, region and growth.</p></li>
+            <li><span className="public-step-number" aria-hidden="true">01</span><h3>Explore a market</h3><p>Start with twenty Domel-related sourced application records. Search applications, industries and sources. Six illustrative opportunities remain in the legacy catalog; market size and growth are not established for the sourced records.</p></li>
             <li><span className="public-step-number" aria-hidden="true">02</span><h3>Score what matters</h3><p>Compare five weighted ratings with a transparent total. Sign in to save your evaluation.</p></li>
             <li><span className="public-step-number" aria-hidden="true">03</span><h3>Review the reasoning</h3><p>Record your assumptions and review a structured demo report: risks, evidence gaps and a suggested next step.</p></li>
           </ol>
@@ -63,10 +63,10 @@ export function PublicIntroduction({ workspaceOpen }: { workspaceOpen: boolean }
       <section className="public-section public-team" aria-labelledby="public-team-title">
         <div className="public-container public-editorial">
           <p className="public-label">04 / The team</p>
-          <div><h2 id="public-team-title">A student project.<br />An open invitation.</h2><p>We are an XJTLU student team building Navoscope for ENT207TC Digital Startup Lab. Our project explores how manufacturing businesses such as Domel can compare core and emerging market opportunities.</p><p className="public-invitation">We invite early users to try Navoscope and share feedback with our team.</p></div>
+          <div><h2 id="public-team-title">A student project.<br />An open invitation.</h2><p>We are an XJTLU student team building Navoscope for ENT207TC Digital Startup Lab. Our project explores how manufacturing businesses such as Domel can compare core and emerging market opportunities.</p><p>No active industry partner is on record. This student project does not imply Domel endorsement or a confirmed commercial partnership.</p><p className="public-invitation">We invite early users to try Navoscope and share feedback with our team.</p></div>
         </div>
       </section>
-      <footer className="public-footer"><div className="public-container"><span className="public-footer-brand">Navoscope / MARKET COMPASS</span><p>Student prototype · Illustrative market data · Rule-based analysis demonstration. No live language model is called; outputs require further research and human judgement.</p></div></footer>
+      <footer className="public-footer"><div className="public-container"><span className="public-footer-brand">Navoscope / MARKET COMPASS</span><p>Student prototype · Manufacturer-sourced application relevance · Legacy illustrative data · Rule-based analysis demonstration. No live language model is called; outputs require further research and human judgement.</p></div></footer>
     </main>
   );
 }
