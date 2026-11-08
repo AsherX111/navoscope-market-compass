@@ -22,9 +22,28 @@ const modePath = { login: "/login", signup: "/create-account", username: "/usern
 
 const pages = [1, 2, 3];
 
-/** The numbered links shown in the top nav: all of them on the homepage, otherwise the other pages. */
+/** The homepage has no workflow tabs; every workspace keeps all three steps. */
 export function navEntries(activePage: number | null): number[] {
-  return activePage === null ? pages : pages.filter((p) => p !== activePage);
+  return activePage === null ? [] : pages;
+}
+
+export function WorkspaceNavigation({ activePage }: { activePage: number | null }) {
+  if (activePage === null) return null;
+  return (
+    <nav className="site-nav" aria-label="Primary navigation">
+      <Link className="nav-pill nav-home" to="/">Main Page</Link>
+      {navEntries(activePage).map((p) => (
+        <Link
+          key={p}
+          className="nav-pill"
+          to={`/page-${p}` as "/page-1"}
+          aria-current={p === activePage ? "page" : undefined}
+        >
+          {p} · {p === 1 ? "Explore" : p === 2 ? "Score" : "Analyse"}
+        </Link>
+      ))}
+    </nav>
+  );
 }
 
 const CloseIcon = () => (
@@ -246,8 +265,6 @@ export function NavoscopeApp() {
     await go('/', true);
   };
 
-  const entries = navEntries(activePage);
-
   let dialogBody: ReactNode = null;
   if (mode === "login")
     dialogBody = (
@@ -307,18 +324,7 @@ export function NavoscopeApp() {
           <source src={videoAsset.url} type="video/mp4" />
         </video>
         <header className="site-header">
-          <nav className="site-nav" aria-label="Primary navigation">
-            {activePage !== null && (
-              <Link className="nav-pill nav-home" to="/">
-                Main Page
-              </Link>
-            )}
-            {entries.map((p) => (
-              <Link key={p} className="nav-pill" to={`/page-${p}` as "/page-1"} aria-label={`Page ${p} — ${p === 1 ? "Market Explorer" : p === 2 ? "Opportunity Scoring" : "Analysis"}`}>
-                {p}
-              </Link>
-            ))}
-          </nav>
+          <WorkspaceNavigation activePage={activePage} />
           <nav className="account-nav" aria-label="Account">
             {!authLoading && account ? (
               <div className="account-menu">

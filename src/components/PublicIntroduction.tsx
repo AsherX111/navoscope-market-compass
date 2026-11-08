@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowDown, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { criteria, defaultScores, weightedScore } from "@/lib/market/model";
 
@@ -17,12 +17,12 @@ export function PublicIntroduction({ workspaceOpen }: { workspaceOpen: boolean }
       <section className="public-hero" aria-labelledby="public-title">
         <div className="public-container">
           <div className="public-wordmark">
-            Navoscope <span>/ MARKET COMPASS</span>
+            <strong className="public-brand">Navoscope</strong> <span>/ MARKET COMPASS</span>
           </div>
           <h1 id="public-title">
-            Market decisions,
+            See clearly.
             <br />
-            made clearer.
+            {" "}<em>Move forward.</em>
           </h1>
           <p className="public-solution">
             Navoscope helps market teams explore opportunities, compare weighted scores and review
@@ -40,6 +40,10 @@ export function PublicIntroduction({ workspaceOpen }: { workspaceOpen: boolean }
           <p className="public-access-note">
             Explore this page freely. Sign in or create an account to use the workspace.
           </p>
+        </div>
+        <div className="public-scroll-hint">
+          <span>swipe to view more information</span>
+          <ArrowDown aria-hidden="true" />
         </div>
       </section>
 
