@@ -61,6 +61,7 @@ export type Database = {
       }
       markets: {
         Row: {
+          evidence_kind: string
           id: string
           illustrative: boolean
           industry: string
@@ -68,6 +69,7 @@ export type Database = {
           region: string
         }
         Insert: {
+          evidence_kind?: string
           id: string
           illustrative?: boolean
           industry: string
@@ -75,6 +77,7 @@ export type Database = {
           region: string
         }
         Update: {
+          evidence_kind?: string
           id?: string
           illustrative?: boolean
           industry?: string
