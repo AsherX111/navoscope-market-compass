@@ -1,13 +1,22 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MarketWorkspace } from "@/components/market/MarketWorkspace";
-import { defaultScores, type Analysis, type Evaluation } from "@/lib/market/model";
+import {
+  defaultScores,
+  generateAnalysis,
+  markets,
+  type Analysis,
+  type Evaluation,
+} from "@/lib/market/model";
 const mock = vi.hoisted(() => ({
   evaluations: [] as Evaluation[],
   analyses: [] as Analysis[],
   failLoad: false,
   failSave: false,
   navigate: vi.fn(),
+  askMarketAi: vi.fn(async (_request: unknown) => ({
+    answer: "Validate demand with pilot customers.",
+  })),
 }));
 vi.mock("@tanstack/react-router", () => ({
   useRouter: () => ({ navigate: mock.navigate }),
@@ -16,6 +25,17 @@ vi.mock("@tanstack/react-router", () => ({
       {children}
     </a>
   ),
+}));
+vi.mock("@/lib/market/analysis", () => ({
+  askMarketAi: mock.askMarketAi,
+  generateAiAnalysis: vi.fn(async ({ data }) => ({
+    ...generateAnalysis(
+      markets.find((market) => market.id === data.marketId)!,
+      data.scores,
+      data.assumptions,
+    ),
+    mode: "AI-assisted analysis — DeepSeek",
+  })),
 }));
 vi.mock("@/lib/market/storage", () => ({
   loadWorkspace: vi.fn(async (id: string) => {
@@ -97,7 +117,9 @@ describe("market workspace interactions (mock cloud boundary)", () => {
     view.unmount();
     render(<MarketWorkspace page={2} userId="alice" />);
     await ready();
-    expect(screen.getByLabelText("Research notes")).toHaveValue("Interview customers");
+    await waitFor(() =>
+      expect(screen.getByLabelText("Research notes")).toHaveValue("Interview customers"),
+    );
     expect(screen.getByLabelText("Status", { exact: true })).toHaveValue("Scored");
     expect(screen.getByText("72 / 100")).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Filter status"), { target: { value: "Archived" } });
@@ -109,10 +131,10 @@ describe("market workspace interactions (mock cloud boundary)", () => {
     fireEvent.change(screen.getByLabelText("Assumptions and business context"), {
       target: { value: "Pilot with limited budget" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Generate demo analysis" }));
-    expect(screen.getByText("Rule-based demo — no language model called")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Save this demo report" }));
-    await screen.findByText("Demo analysis saved to your account.");
+    fireEvent.click(screen.getByRole("button", { name: "Generate AI analysis" }));
+    expect(await screen.findByText("AI-assisted analysis — DeepSeek")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Save this report" }));
+    await screen.findByText("Analysis saved to your account.");
     view.unmount();
     render(<MarketWorkspace page={3} userId="alice" />);
     await ready();
@@ -123,6 +145,30 @@ describe("market workspace interactions (mock cloud boundary)", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Saved report" })).toBeDisabled();
+  });
+  it("answers questions before a report exists and sends recent turns on follow-up", async () => {
+    render(<MarketWorkspace page={3} userId="alice" />);
+    await ready();
+    const field = screen.getByLabelText("Your question");
+    const ask = screen.getByRole("button", { name: "Ask DeepSeek" });
+    fireEvent.change(field, { target: { value: "What should we verify first?" } });
+    fireEvent.click(ask);
+    await screen.findByText("Validate demand with pilot customers.");
+    fireEvent.change(field, { target: { value: "How?" } });
+    fireEvent.click(ask);
+    await waitFor(() =>
+      expect(mock.askMarketAi).toHaveBeenLastCalledWith({
+        data: expect.objectContaining({
+          question: "How?",
+          history: [
+            {
+              question: "What should we verify first?",
+              answer: "Validate demand with pilot customers.",
+            },
+          ],
+        }),
+      }),
+    );
   });
   it("keeps failed saves unsaved and disables saving after load failure", async () => {
     mock.failSave = true;

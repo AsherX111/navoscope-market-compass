@@ -7,7 +7,6 @@ import {
   type SourceEvidence,
   criteria,
   defaultScores,
-  generateAnalysis,
   markets,
   recommendation,
   searchMarkets,
@@ -19,7 +18,7 @@ import {
   type Scores,
   type WorkStatus,
 } from "@/lib/market/model";
-import { generateAiAnalysis } from "@/lib/market/analysis";
+import { askMarketAi, generateAiAnalysis } from "@/lib/market/analysis";
 import { loadWorkspace, saveAnalysis, saveEvaluation, storageError } from "@/lib/market/storage";
 
 export function MarketWorkspace({ page, userId }: { page: number; userId: string }) {
@@ -38,6 +37,13 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<WorkStatus>("New");
   const [assumptions, setAssumptions] = useState("");
+  const [document, setDocument] = useState<{ name: string; text: string }>();
+  const [fileError, setFileError] = useState("");
+  const [readingFile, setReadingFile] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [conversation, setConversation] = useState<{ question: string; answer: string }[]>([]);
+  const [asking, setAsking] = useState(false);
+  const [chatError, setChatError] = useState("");
   const [report, setReport] = useState<Report | null>(null);
   const [reportMarket, setReportMarket] = useState("");
   const [reportScores, setReportScores] = useState<Scores>({ ...defaultScores });
@@ -142,24 +148,11 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
       });
       setAnalyses((prev) => [result, ...prev]);
       setSavedReportId(result.id);
-      setMessage("Demo analysis saved to your account.");
+      setMessage("Analysis saved to your account.");
     } catch (e) {
       setError(storageError(e));
     } finally {
       setBusy(false);
-    }
-  }
-  function generate() {
-    if (!market) return;
-    setError("");
-    setMessage("");
-    try {
-      setReport(generateAnalysis(market, scores, assumptions));
-      setReportMarket(selected);
-      setReportScores({ ...scores });
-      setSavedReportId(null);
-    } catch (e) {
-      setError((e as Error).message);
     }
   }
   async function generateWithAi() {
@@ -168,7 +161,7 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
     setGenerating(true);
     try {
       const result = await generateAiAnalysis({
-        data: { marketId: selected, scores, assumptions },
+        data: { marketId: selected, scores, assumptions, document },
       });
       if ("error" in result) {
         setError(result.error);
@@ -184,6 +177,66 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
       setGenerating(false);
     }
   }
+  async function readDocument(file: File) {
+    setDocument(undefined);
+    setConversation([]);
+    setFileError("");
+    setReadingFile(true);
+    try {
+      if (!/\.(txt|csv|md|tsv|json)$/i.test(file.name) || file.size > 96000) {
+        throw new Error("Choose a TXT, CSV, Markdown, TSV or JSON file under 96 KB.");
+      }
+      const content = new TextDecoder("utf-8", { fatal: true })
+        .decode(await file.arrayBuffer())
+        .trim();
+      if (!content || content.includes("\0") || content.length > 24000) {
+        throw new Error("Choose a non-empty text file with at most 24,000 characters.");
+      }
+      setDocument({ name: file.name, text: content });
+    } catch (error) {
+      setFileError(
+        error instanceof TypeError
+          ? "Save the file as UTF-8 and upload it again."
+          : (error as Error).message,
+      );
+    } finally {
+      setReadingFile(false);
+    }
+  }
+
+  async function askQuestion() {
+    const prompt = question.trim();
+    if (!prompt || asking || readingFile) return;
+    setAsking(true);
+    setChatError("");
+    try {
+      const result = await askMarketAi({
+        data: {
+          marketId: selected,
+          marketIds: page === 1 ? visible.slice(0, 20).map(({ id }) => id) : undefined,
+          ratings: page === 2 ? scores : undefined,
+          question: prompt,
+          assumptions,
+          document,
+          reportSummary: reportMarket === selected ? report?.summary.slice(0, 2000) : undefined,
+          history: conversation
+            .slice(-4)
+            .map((turn) => ({ ...turn, answer: turn.answer.slice(0, 6000) })),
+        },
+      });
+      if ("error" in result) {
+        setChatError(result.error);
+        return;
+      }
+      setConversation((turns) => [...turns, { question: prompt, answer: result.answer }]);
+      setQuestion("");
+    } catch {
+      setChatError("Could not contact DeepSeek. Check your sign-in and try again.");
+    } finally {
+      setAsking(false);
+    }
+  }
+
   const savedResults = evaluations
     .filter(
       (e) =>
@@ -209,6 +262,105 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
   const options = pickerMarkets.some((m) => m.id === selected)
     ? pickerMarkets
     : [market, ...pickerMarkets];
+  const referenceFileInput = (
+    <>
+      <label>
+        Reference file (optional)
+        <input
+          type="file"
+          accept=".txt,.csv,.md,.tsv,.json"
+          disabled={readingFile || asking || generating}
+          onChange={(e) => {
+            const file = e.currentTarget.files?.[0];
+            e.currentTarget.value = "";
+            if (file) void readDocument(file);
+          }}
+        />
+      </label>
+      <p>
+        UTF-8 TXT, CSV, Markdown, TSV or JSON, up to 24,000 characters. Upload only material you can
+        share with DeepSeek.
+      </p>
+      {readingFile && <p role="status">Reading file…</p>}
+      {fileError && <p role="alert">{fileError}</p>}
+      {document && (
+        <p>
+          {document.name}{" "}
+          <button
+            type="button"
+            disabled={asking || generating}
+            onClick={() => {
+              setDocument(undefined);
+              setConversation([]);
+            }}
+          >
+            Remove file
+          </button>
+        </p>
+      )}
+    </>
+  );
+  const aiAssistant = (
+    <section className="market-assistant" aria-label="Ask DeepSeek">
+      <p className="eyebrow">DEEPSEEK</p>
+      <h3>
+        {page === 1
+          ? "Explore these markets"
+          : page === 2
+            ? "Understand this score"
+            : "Discuss this analysis"}
+      </h3>
+      <p>
+        {page === 1
+          ? "Compare markets in the current results or ask what to research next."
+          : page === 2
+            ? "Ask why your ratings produced this score or which changes would matter most."
+            : "Ask about the selected market, uploaded file, or report. Follow-up questions are welcome."}
+        {" Your question and relevant context are sent to DeepSeek."}
+      </p>
+      {page !== 3 && referenceFileInput}
+      {conversation.length > 0 && (
+        <div className="market-assistant-thread" aria-live="polite">
+          {conversation.map((turn, index) => (
+            <div key={index}>
+              <p>
+                <strong>{turn.question}</strong>
+              </p>
+              <p style={{ whiteSpace: "pre-wrap" }}>{turn.answer}</p>
+            </div>
+          ))}
+        </div>
+      )}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void askQuestion();
+        }}
+      >
+        <label>
+          Your question
+          <textarea
+            required
+            maxLength={2000}
+            disabled={asking}
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder={
+              page === 1
+                ? "Which markets in these results should I research first?"
+                : page === 2
+                  ? "Which ratings have the biggest effect on this score?"
+                  : "What does this file say about demand?"
+            }
+          />
+        </label>
+        <button type="submit" disabled={asking || readingFile || !question.trim()}>
+          {asking ? "Asking…" : "Ask DeepSeek"}
+        </button>
+      </form>
+      {chatError && <p role="alert">{chatError}</p>}
+    </section>
+  );
   return (
     <section className="market-workspace" aria-label={title}>
       <div className="workspace-heading">
@@ -216,8 +368,7 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
         <h1>{title}</h1>
         <p>
           Manufacturer statements establish application relevance only, not market size, growth or
-          demand. Ratings are user judgements; reports are rule-based demos, not live AI. Legacy
-          data is illustrative.
+          demand. Ratings are user judgements. Legacy data is illustrative.
         </p>
       </div>
       {loading && <p role="status">Loading your saved work…</p>}
@@ -294,60 +445,63 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
           {visible.length === 0 && (
             <p>No markets match. Clear your search or broaden the filters.</p>
           )}
-          <div className="market-grid">
-            {visible.map((m) => (
-              <article key={m.id} className="market-card">
-                <p className="eyebrow">
-                  {m.industry} / {m.region}
-                </p>
-                <h2>{m.name}</h2>
-                <p>{m.summary}</p>
-                <p>
-                  Size: {metricText(m.size, "size")} · Growth: {metricText(m.growth, "growth")}
-                </p>
-                <button
-                  onClick={() => setDetail(detail === m.id ? null : m.id)}
-                  aria-expanded={detail === m.id}
-                >
-                  Details: {m.name}
-                </button>
-                {detail === m.id && (
-                  <div>
-                    <h3>
-                      {m.sources?.length
-                        ? "Source-grounded applicability"
-                        : "Legacy illustrative drivers"}
-                    </h3>
-                    {m.sources?.length ? <p>{m.summary}</p> : null}
-                    <ul>
-                      {m.drivers.map((d) => (
-                        <li key={d}>{d}</li>
-                      ))}
-                    </ul>
-                    <h3>
-                      {m.sources?.length
-                        ? "Questions to validate · analyst-authored"
-                        : "Legacy illustrative risks"}
-                    </h3>
-                    <ul>
-                      {(m.questions ?? m.risks).map((r) => (
-                        <li key={r}>{r}</li>
-                      ))}
-                    </ul>
-                    <h3>Evidence limitations</h3>
-                    <p>{m.evidence}</p>
-                    <Sources sources={m.sources} />
-                    <button
-                      onClick={() => {
-                        if (choose(m.id)) void router.navigate({ to: "/page-2" });
-                      }}
-                    >
-                      Evaluate this market
-                    </button>
-                  </div>
-                )}
-              </article>
-            ))}
+          <div className="market-explore-layout">
+            <div className="market-grid">
+              {visible.map((m) => (
+                <article key={m.id} className="market-card">
+                  <p className="eyebrow">
+                    {m.industry} / {m.region}
+                  </p>
+                  <h2>{m.name}</h2>
+                  <p>{m.summary}</p>
+                  <p>
+                    Size: {metricText(m.size, "size")} · Growth: {metricText(m.growth, "growth")}
+                  </p>
+                  <button
+                    onClick={() => setDetail(detail === m.id ? null : m.id)}
+                    aria-expanded={detail === m.id}
+                  >
+                    Details: {m.name}
+                  </button>
+                  {detail === m.id && (
+                    <div>
+                      <h3>
+                        {m.sources?.length
+                          ? "Source-grounded applicability"
+                          : "Legacy illustrative drivers"}
+                      </h3>
+                      {m.sources?.length ? <p>{m.summary}</p> : null}
+                      <ul>
+                        {m.drivers.map((d) => (
+                          <li key={d}>{d}</li>
+                        ))}
+                      </ul>
+                      <h3>
+                        {m.sources?.length
+                          ? "Questions to validate · analyst-authored"
+                          : "Legacy illustrative risks"}
+                      </h3>
+                      <ul>
+                        {(m.questions ?? m.risks).map((r) => (
+                          <li key={r}>{r}</li>
+                        ))}
+                      </ul>
+                      <h3>Evidence limitations</h3>
+                      <p>{m.evidence}</p>
+                      <Sources sources={m.sources} />
+                      <button
+                        onClick={() => {
+                          if (choose(m.id)) void router.navigate({ to: "/page-2" });
+                        }}
+                      >
+                        Evaluate this market
+                      </button>
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+            <aside className="market-card market-explore-assistant">{aiAssistant}</aside>
           </div>
         </>
       ) : (
@@ -457,6 +611,7 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
                   Expand; otherwise Monitor.
                 </p>
                 <Link to="/page-3">Continue to analysis →</Link>
+                {aiAssistant}
               </section>
             </div>
           ) : (
@@ -464,18 +619,16 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
               <section className="market-card">
                 <h2>Generate a market report</h2>
                 <p>
-                  Generate an AI-assisted narrative or a rule-based demo using the selected market
-                  and current ratings ({total}/100). AI analysis sends your assumptions to DeepSeek.
+                  Generate an AI-assisted report using the selected market and current ratings (
+                  {total}/100). Reports and questions send the provided context and file text to
+                  DeepSeek.
                 </p>
                 <Link to="/page-2">Edit scoring inputs</Link>
+                {referenceFileInput}
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    if ((e.nativeEvent as SubmitEvent).submitter?.getAttribute("value") === "ai") {
-                      void generateWithAi();
-                    } else {
-                      generate();
-                    }
+                    if (!generating && !busy && !readingFile) void generateWithAi();
                   }}
                 >
                   <label>
@@ -488,80 +641,83 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
                       placeholder="Capabilities, target customers, budget and assumptions to verify"
                     />
                   </label>
-                  <button type="submit" value="ai" disabled={generating || busy}>
+                  <button type="submit" disabled={generating || busy || readingFile}>
                     {generating ? "Generating…" : "Generate AI analysis"}
-                  </button>
-                  <button type="submit" disabled={generating || busy}>
-                    Generate demo analysis
                   </button>
                 </form>
                 <p>Current recommendation: {advice.category}</p>
               </section>
-              {report && (
-                <article className="market-card" aria-label="Analysis report">
-                  <p className="eyebrow">{report.mode}</p>
-                  <h2>{markets.find((m) => m.id === reportMarket)?.name}</h2>
-                  <p>
-                    <strong>
-                      {report.category} · {report.score}/100
-                    </strong>
-                  </p>
-                  <h3>Opportunity summary</h3>
-                  <p>{report.summary}</p>
-                  <p>{report.applicability}</p>
-                  <Sources sources={report.sources} />
-                  <h3>Source context & user-rated attractiveness</h3>
-                  <ul>
-                    {report.strengths.map((s) => (
-                      <li key={s}>{s}</li>
-                    ))}
-                  </ul>
-                  <h3>Risks & uncertainties</h3>
-                  <ul>
-                    {report.risks.map((s) => (
-                      <li key={s}>{s}</li>
-                    ))}
-                  </ul>
-                  <h3>Strategic fit & feasibility</h3>
-                  <p>{report.fit}</p>
-                  <h3>Evidence gaps</h3>
-                  <ul>
-                    {report.gaps.map((s) => (
-                      <li key={s}>{s}</li>
-                    ))}
-                  </ul>
-                  {report.questions?.length ? (
-                    <>
-                      <h3>Questions to validate · analyst-authored</h3>
-                      <ul>
-                        {report.questions.map((q) => (
-                          <li key={q}>{q}</li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : null}
-                  <h3>Assumptions used</h3>
-                  <p className="preserve-lines">{report.assumptions}</p>
-                  <h3>Recommendations</h3>
-                  <ul>
-                    {report.actions.map((s) => (
-                      <li key={s}>{s}</li>
-                    ))}
-                  </ul>
-                  <button
-                    disabled={busy || loading || !!loadError || !!savedReportId}
-                    onClick={() => void persistReport()}
-                  >
-                    {savedReportId
-                      ? "Saved report"
-                      : busy
-                        ? "Saving…"
-                        : report.mode.startsWith("AI")
-                          ? "Save this AI report"
-                          : "Save this demo report"}
-                  </button>
-                </article>
-              )}
+              <div className="market-analysis-results">
+                {report && (
+                  <article className="market-card" aria-label="Analysis report">
+                    <p className="eyebrow">{report.mode}</p>
+                    <h2>{markets.find((m) => m.id === reportMarket)?.name}</h2>
+                    <p>
+                      <strong>
+                        {report.category} · {report.score}/100
+                      </strong>
+                    </p>
+                    {report.format === "freeform" ? (
+                      <>
+                        <p className="preserve-lines">{report.summary}</p>
+                        <Sources sources={report.sources} />
+                      </>
+                    ) : (
+                      <>
+                        <h3>Opportunity summary</h3>
+                        <p>{report.summary}</p>
+                        <p>{report.applicability}</p>
+                        <Sources sources={report.sources} />
+                        <h3>Source context & user-rated attractiveness</h3>
+                        <ul>
+                          {report.strengths.map((s) => (
+                            <li key={s}>{s}</li>
+                          ))}
+                        </ul>
+                        <h3>Risks & uncertainties</h3>
+                        <ul>
+                          {report.risks.map((s) => (
+                            <li key={s}>{s}</li>
+                          ))}
+                        </ul>
+                        <h3>Strategic fit & feasibility</h3>
+                        <p>{report.fit}</p>
+                        <h3>Evidence gaps</h3>
+                        <ul>
+                          {report.gaps.map((s) => (
+                            <li key={s}>{s}</li>
+                          ))}
+                        </ul>
+                        {report.questions?.length ? (
+                          <>
+                            <h3>Questions to validate · analyst-authored</h3>
+                            <ul>
+                              {report.questions.map((q) => (
+                                <li key={q}>{q}</li>
+                              ))}
+                            </ul>
+                          </>
+                        ) : null}
+                        <h3>Assumptions used</h3>
+                        <p className="preserve-lines">{report.assumptions}</p>
+                        <h3>Recommendations</h3>
+                        <ul>
+                          {report.actions.map((s) => (
+                            <li key={s}>{s}</li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                    <button
+                      disabled={busy || loading || !!loadError || !!savedReportId}
+                      onClick={() => void persistReport()}
+                    >
+                      {savedReportId ? "Saved report" : busy ? "Saving…" : "Save this report"}
+                    </button>
+                  </article>
+                )}
+                <div className="market-card">{aiAssistant}</div>
+              </div>
             </div>
           )}
         </>
@@ -625,7 +781,7 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
       )}
       {page === 3 && (
         <section className="saved-work">
-          <h2>Previous demo analyses for {market.name}</h2>
+          <h2>Previous analyses for {market.name}</h2>
           {!loading && !loadError && !analyses.some((a) => a.market_id === selected) && (
             <p>No saved reports for this market yet.</p>
           )}
