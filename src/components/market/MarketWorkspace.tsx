@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import {
+  catalogMarkets,
+  metricText,
+  type Catalog,
+  type SourceEvidence,
   criteria,
   defaultScores,
   generateAnalysis,
@@ -23,8 +27,9 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
   const [industry, setIndustry] = useState("");
   const [region, setRegion] = useState("");
   const [minGrowth, setMinGrowth] = useState(0);
+  const [catalog, setCatalog] = useState<Catalog>("domel");
   const [sort, setSort] = useState("name");
-  const [selected, setSelected] = useState(markets[0]!.id);
+  const [selected, setSelected] = useState(markets[0]?.id ?? "");
   const [detail, setDetail] = useState<string | null>(null);
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
@@ -46,10 +51,10 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
   const [savedSort, setSavedSort] = useState("updated");
   const [savedQuery, setSavedQuery] = useState("");
   const [dirty, setDirty] = useState(false);
-  const market = markets.find((m) => m.id === selected)!;
+  const market = markets.find((m) => m.id === selected);
   const saved = evaluations.find((e) => e.market_id === selected);
   const archived = saved?.status === "Archived";
-  const visible = searchMarkets({ query, industry, region, minGrowth, sort });
+  const visible = searchMarkets({ query, industry, region, minGrowth, sort, catalog });
   const total = weightedScore(scores);
   const advice = recommendation(scores);
   useEffect(() => {
@@ -84,6 +89,9 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
     if (id === selected) return true;
     if (dirty && !window.confirm("Discard unsaved evaluation changes?")) return false;
     setDirty(false);
+    const target = markets.find((m) => m.id === id);
+    if (!target) return false;
+    if (target.catalog !== "domel") setCatalog("legacy");
     setSelected(id);
     setReport(null);
     setSavedReportId(null);
@@ -140,6 +148,7 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
     }
   }
   function generate() {
+    if (!market) return;
     setError("");
     setMessage("");
     try {
@@ -171,6 +180,9 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
       : page === 2
         ? "Opportunity Scoring"
         : "Analysis & Recommendations";
+  if (!market) return <p role="alert">Selected application is unavailable.</p>;
+  const pickerMarkets = catalogMarkets(catalog);
+  const options = pickerMarkets.some((m) => m.id === selected) ? pickerMarkets : [market, ...pickerMarkets];
   return (
     <section className="market-workspace" aria-label={title}>
       <div className="workspace-heading">
@@ -188,8 +200,8 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
           </Link>
         </nav>
         <p>
-          Illustrative teaching data only. Market figures and analysis are assumptions, not verified
-          research or investment advice.
+          Manufacturer statements establish application relevance only, not market size, growth or
+          demand. Ratings are user judgements; reports are rule-based demos, not live AI. Legacy data is illustrative.
         </p>
       </div>
       {loading && <p role="status">Loading your saved work…</p>}
@@ -205,6 +217,14 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
       )}
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
+      <label className="market-picker">
+        Catalog / evidence
+        <select value={catalog} onChange={(e) => setCatalog(e.target.value as Catalog)}>
+          <option value="domel">Domel · Manufacturer-sourced applications (20)</option>
+          <option value="legacy">Legacy · Illustrative teaching catalog (6)</option>
+          <option value="all">All evidence types (26)</option>
+        </select>
+      </label>
       {page === 1 ? (
         <>
           <div className="workspace-filters">
@@ -214,7 +234,7 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Name, keyword or industry"
+                placeholder="Application, industry, publisher or source"
               />
             </label>
             <label>
@@ -267,7 +287,7 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
                 <h2>{m.name}</h2>
                 <p>{m.summary}</p>
                 <p>
-                  Illustrative size USD {m.size}bn · Growth {m.growth}%
+                  Size: {metricText(m.size, "size")} · Growth: {metricText(m.growth, "growth")}
                 </p>
                 <button
                   onClick={() => setDetail(detail === m.id ? null : m.id)}
@@ -277,19 +297,22 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
                 </button>
                 {detail === m.id && (
                   <div>
-                    <h3>Growth drivers</h3>
+                    <h3>{m.sources?.length ? "Source-grounded applicability" : "Legacy illustrative drivers"}</h3>
+                    {m.sources?.length ? <p>{m.summary}</p> : null}
                     <ul>
                       {m.drivers.map((d) => (
                         <li key={d}>{d}</li>
                       ))}
                     </ul>
-                    <h3>Risks</h3>
+                    <h3>{m.sources?.length ? "Questions to validate · analyst-authored" : "Legacy illustrative risks"}</h3>
                     <ul>
-                      {m.risks.map((r) => (
+                      {(m.questions ?? m.risks).map((r) => (
                         <li key={r}>{r}</li>
                       ))}
                     </ul>
+                    <h3>Evidence limitations</h3>
                     <p>{m.evidence}</p>
+                    <Sources sources={m.sources} />
                     <button
                       onClick={() => {
                         if (choose(m.id)) void router.navigate({ to: "/page-2" });
@@ -308,7 +331,7 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
           <label className="market-picker">
             Selected market
             <select value={selected} disabled={busy} onChange={(e) => choose(e.target.value)}>
-              {markets.map((m) => (
+              {options.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.name}
                 </option>
@@ -453,7 +476,9 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
                   </p>
                   <h3>Opportunity summary</h3>
                   <p>{report.summary}</p>
-                  <h3>Strengths & growth drivers</h3>
+                  <p>{report.applicability}</p>
+                  <Sources sources={report.sources} />
+                  <h3>Source context & user-rated attractiveness</h3>
                   <ul>
                     {report.strengths.map((s) => (
                       <li key={s}>{s}</li>
@@ -473,6 +498,7 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
                       <li key={s}>{s}</li>
                     ))}
                   </ul>
+                  {report.questions?.length ? <><h3>Questions to validate · analyst-authored</h3><ul>{report.questions.map((q) => <li key={q}>{q}</li>)}</ul></> : null}
                   <h3>Assumptions used</h3>
                   <p className="preserve-lines">{report.assumptions}</p>
                   <h3>Recommendations</h3>
@@ -564,6 +590,7 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
                   {a.report.category} · {a.report.score}/100
                   <small>{new Date(a.created_at).toLocaleString()}</small>
                 </span>
+                <Sources sources={a.report.sources} />
                 <button
                   onClick={() => {
                     setReport(a.report);
@@ -580,4 +607,13 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
       )}
     </section>
   );
+}
+
+function Sources({ sources }: { sources?: SourceEvidence[] }) {
+  if (!sources?.length) return null;
+  return <div className="evidence-sources"><h3>Source snapshot</h3>{sources.map((source) => <p key={source.url}>
+    <a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a><br />
+    {source.publisher} · {source.sourceType} · Published: {source.publicationDate ?? "Undated"} · Accessed: {source.accessedDate}
+    {source.eventDates ? <><br />Event: {source.eventDates}</> : null}<br />{source.limitations}
+  </p>)}</div>;
 }
