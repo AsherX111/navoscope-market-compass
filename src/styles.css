@@ -570,3 +570,34 @@ h1 {
   .public-score-detail th, .public-score-detail td { padding: 12px 4px; }
   .public-calculation { font-size: 12px; }
 }
+
+.market-explore-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  align-items: start;
+  gap: 22px;
+}
+.market-analysis-results { display: grid; gap: 22px; min-width: 0; }
+.market-assistant { min-width: 0; overflow-wrap: anywhere; }
+.market-card > a + .market-assistant {
+  border-top: 1px solid #55555d;
+  margin-top: 20px;
+  padding-top: 16px;
+}
+.market-assistant textarea { min-height: 72px; }
+.market-assistant-thread {
+  display: grid;
+  gap: 10px;
+  max-height: 360px;
+  overflow-y: auto;
+  margin: 12px 0;
+}
+.market-assistant-thread > div {
+  background: rgba(255, 255, 255, .05);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+@media (max-width: 980px) {
+  .market-explore-layout { grid-template-columns: 1fr; }
+  .market-explore-assistant { grid-row: 1; }
+}

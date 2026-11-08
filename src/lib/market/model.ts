@@ -199,6 +199,7 @@ export type Evaluation = {
   updated_at: string;
 };
 export type Report = {
+  format?: "freeform";
   mode: "Rule-based demo — no language model called" | "AI-assisted analysis — DeepSeek";
   summary: string;
   sources?: SourceEvidence[];
