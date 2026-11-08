@@ -84,10 +84,24 @@ describe("market discovery", () => {
   it("sorts numeric metrics and does not mutate the catalog", () => {
     const ids = markets.map((m) => m.id);
     expect(
-      searchMarkets({ query: "", industry: "", region: "", minGrowth: 0, sort: "size", catalog: "legacy" })[0]?.id,
+      searchMarkets({
+        query: "",
+        industry: "",
+        region: "",
+        minGrowth: 0,
+        sort: "size",
+        catalog: "legacy",
+      })[0]?.id,
     ).toBe("na-automation");
     expect(
-      searchMarkets({ query: "", industry: "", region: "", minGrowth: 0, sort: "growth", catalog: "legacy" })[0]?.id,
+      searchMarkets({
+        query: "",
+        industry: "",
+        region: "",
+        minGrowth: 0,
+        sort: "growth",
+        catalog: "legacy",
+      })[0]?.id,
     ).toBe("asia-cooling");
     expect(markets.map((m) => m.id)).toEqual(ids);
   });
@@ -95,7 +109,7 @@ describe("market discovery", () => {
 describe("rule-based analysis", () => {
   it("records assumptions and rating-dependent recommendations without claiming AI", () => {
     const report = generateAnalysis(
-      domelMarkets[0] as NonNullable<typeof domelMarkets[0]>,
+      domelMarkets[0] as NonNullable<(typeof domelMarkets)[0]>,
       { ...defaultScores, resilience: 1 },
       "Limited pilot budget",
     );
@@ -108,32 +122,60 @@ describe("rule-based analysis", () => {
     expect(report.actions.length).toBeGreaterThan(2);
   });
   it("requires nonempty bounded assumptions", () => {
-    expect(() => generateAnalysis(domelMarkets[0] as NonNullable<typeof domelMarkets[0]>, defaultScores, "  ")).toThrow();
-    expect(() => generateAnalysis(domelMarkets[0] as NonNullable<typeof domelMarkets[0]>, defaultScores, "a".repeat(3001))).toThrow();
+    expect(() =>
+      generateAnalysis(
+        domelMarkets[0] as NonNullable<(typeof domelMarkets)[0]>,
+        defaultScores,
+        "  ",
+      ),
+    ).toThrow();
+    expect(() =>
+      generateAnalysis(
+        domelMarkets[0] as NonNullable<(typeof domelMarkets)[0]>,
+        defaultScores,
+        "a".repeat(3001),
+      ),
+    ).toThrow();
   });
 });
 
 describe("Domel evidence catalog", () => {
   const options = { query: "", industry: "", region: "", minGrowth: 0, sort: "name" };
   it("preserves every legacy ID", () => {
-    expect(legacyMarkets.map(m => m.id)).toEqual(["eu-heat-pumps", "asia-water", "na-automation", "eu-medical", "asia-cooling", "na-recycling"]);
-    expect(new Set(markets.map(m => m.id)).size).toBe(26);
+    expect(legacyMarkets.map((m) => m.id)).toEqual([
+      "eu-heat-pumps",
+      "asia-water",
+      "na-automation",
+      "eu-medical",
+      "asia-cooling",
+      "na-recycling",
+    ]);
+    expect(new Set(markets.map((m) => m.id)).size).toBe(26);
   });
   it("includes unknown growth with Any growth and excludes it at positive thresholds", () => {
     expect(searchMarkets(options)).toHaveLength(20);
-    expect(domelMarkets.every(m => m.size === null && m.growth === null)).toBe(true);
+    expect(domelMarkets.every((m) => m.size === null && m.growth === null)).toBe(true);
     expect(searchMarkets({ ...options, minGrowth: 10 })).toHaveLength(0);
-    expect(searchMarkets({ ...options, catalog: "all", minGrowth: 10 }).map(m => m.id).sort()).toEqual(["asia-cooling", "eu-heat-pumps", "na-recycling"]);
+    expect(
+      searchMarkets({ ...options, catalog: "all", minGrowth: 10 })
+        .map((m) => m.id)
+        .sort(),
+    ).toEqual(["asia-cooling", "eu-heat-pumps", "na-recycling"]);
   });
-  it.each(["size", "growth"])("puts unknown %s after all six known illustrative metrics", sort => {
-    const result = searchMarkets({ ...options, sort, catalog: "all" });
-    expect(result.slice(0, 6).every(m => !m.id.startsWith("domel-"))).toBe(true);
-    expect(result.slice(6).every(m => m.id.startsWith("domel-"))).toBe(true);
-  });
+  it.each(["size", "growth"])(
+    "puts unknown %s after all six known illustrative metrics",
+    (sort) => {
+      const result = searchMarkets({ ...options, sort, catalog: "all" });
+      expect(result.slice(0, 6).every((m) => !m.id.startsWith("domel-"))).toBe(true);
+      expect(result.slice(6).every((m) => m.id.startsWith("domel-"))).toBe(true);
+    },
+  );
   it("searches source title, publisher and applications", () => {
     expect(searchMarkets({ ...options, query: "Domel" })).toHaveLength(20);
     expect(searchMarkets({ ...options, query: "China Clean Expo" })).toHaveLength(4);
-    expect(searchMarkets({ ...options, query: "recirculation" }).map(m => m.id)).toEqual(["domel-hydrogen"]);
+    expect(searchMarkets({ ...options, query: "recirculation" }).map((m) => m.id)).toEqual([
+      "domel-hydrogen",
+    ]);
   });
   it("snapshots dates and sources without invented size, growth or commercial claims", () => {
     for (const market of domelMarkets) {
@@ -146,7 +188,11 @@ describe("Domel evidence catalog", () => {
       expect(report.applicability).toContain("separate from user-rated attractiveness");
       expect(report.mode).toBe("Rule-based demo — no language model called");
     }
-    expect(domelMarkets.find(m => m.id === "domel-agv")?.sources?.[0]?.publicationDate).toBe("2026-07-03");
-    expect(domelMarkets.find(m => m.id === "domel-vacuum")?.sources?.[0]?.eventDates).toBe("2024-03-26 to 2024-03-29");
+    expect(domelMarkets.find((m) => m.id === "domel-agv")?.sources?.[0]?.publicationDate).toBe(
+      "2026-07-03",
+    );
+    expect(domelMarkets.find((m) => m.id === "domel-vacuum")?.sources?.[0]?.eventDates).toBe(
+      "2024-03-26 to 2024-03-29",
+    );
   });
 });
