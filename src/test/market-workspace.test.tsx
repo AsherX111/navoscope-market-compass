@@ -99,6 +99,31 @@ describe("market workspace interactions (mock cloud boundary)", () => {
       "North American automation",
     );
   });
+  it("filters by stable values after labels are translated and resets invalid filters", async () => {
+    render(<MarketWorkspace page={1} userId="alice" />);
+    await ready();
+    const industry = screen.getByLabelText("Industry") as HTMLSelectElement;
+    const region = screen.getByLabelText("Region") as HTMLSelectElement;
+    const robotics = Array.from(industry.options).find(
+      (option) => option.value === "Mobile robotics",
+    )!;
+    robotics.textContent = "移动机器人";
+    fireEvent.change(industry, { target: { value: "Mobile robotics" } });
+    expect(screen.getByText("4 markets found")).toBeInTheDocument();
+    expect(Array.from(region.options).map((option) => option.value)).not.toContain("Europe");
+
+    fireEvent.change(screen.getByLabelText("Catalog / evidence"), { target: { value: "legacy" } });
+    expect(industry.value).toBe("");
+    const europe = Array.from(region.options).find((option) => option.value === "Europe")!;
+    europe.textContent = "欧洲";
+    fireEvent.change(region, { target: { value: "Europe" } });
+    expect(screen.queryByText("0 markets found")).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Search markets"), { target: { value: "unmatched" } });
+    fireEvent.click(screen.getByRole("button", { name: "Clear search and filters" }));
+    expect(region.value).toBe("");
+    expect(screen.getByText("6 markets found")).toBeInTheDocument();
+  });
   it("recalculates, saves, remounts and restores evaluation including status", async () => {
     const view = render(<MarketWorkspace page={2} userId="alice" />);
     await ready();
