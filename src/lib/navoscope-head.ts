@@ -1,5 +1,5 @@
 const description =
-  "Navoscope student prototype: Domel-related application evidence and user-rated opportunities. Rule-based demo, no live model or active industry partner.";
+  "Navoscope student prototype: Domel-related application evidence and user-rated opportunities. Guest scoring and signed-in DeepSeek Q&A, reference files and AI-assisted reports. AI outputs require verification; no active industry partner.";
 
 export function navoscopeHead(title: string, pageDescription = description) {
   return {

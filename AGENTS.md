@@ -17,3 +17,4 @@
 - Public introduction content is a child of the persistent shell, hidden and inert while its workspace is open; its CSS is scoped to public classes and tokens. Why: public scrolling must not remount the video or expose homepage controls behind the workspace.
 - Application catalogs and provenance are browser-safe data modules; the combined resolver preserves legacy IDs while catalog selectors default to sourced records. Why: existing FK-backed saved work and immutable report JSON must stay readable.
 - Reports snapshot optional source metadata inside existing JSON and render it defensively. Why: old reports lack provenance fields and must remain readable without backfilling or rewriting them.
+- Guest scoring keeps ratings in its own component state and uses the shared scoring model and criterion help. Why: public experimentation must never modify authenticated saved evaluations.

@@ -120,31 +120,31 @@ export const criteria = [
     key: "demand",
     label: "Demand potential",
     weight: 0.3,
-    help: "Validated customer need and willingness to pay",
+    help: "How much customers need this and are willing to pay.",
   },
   {
     key: "growth",
     label: "Growth outlook",
     weight: 0.2,
-    help: "Durability of expected market expansion",
+    help: "How likely the market is to grow over time.",
   },
   {
     key: "fit",
     label: "Strategic fit",
     weight: 0.25,
-    help: "Fit with your capabilities and business objectives",
+    help: "How well this matches your strengths and business goals.",
   },
   {
     key: "feasibility",
     label: "Delivery feasibility",
     weight: 0.15,
-    help: "Resources, channels and regulatory readiness",
+    help: "How ready you are to deliver, with resources, sales channels and required approvals.",
   },
   {
     key: "resilience",
     label: "Risk resilience",
     weight: 0.1,
-    help: "Higher means lower exposure and stronger mitigations",
+    help: "How well you can manage risks. A higher rating means less risk and stronger safeguards.",
   },
 ] as const;
 export type Scores = Record<(typeof criteria)[number]["key"], number>;

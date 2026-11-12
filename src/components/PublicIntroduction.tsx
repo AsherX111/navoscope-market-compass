@@ -1,9 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowDown, ArrowRight } from "lucide-react";
+import { ArrowDown, ArrowRight, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { criteria, defaultScores, weightedScore } from "@/lib/market/model";
-
-const exampleScores = { ...defaultScores, demand: 5 };
+import { GuestScoringExample } from "@/components/GuestScoringExample";
 
 /** Public homepage content stays inside the persistent Navoscope shell. */
 export function PublicIntroduction({ workspaceOpen }: { workspaceOpen: boolean }) {
@@ -21,12 +19,11 @@ export function PublicIntroduction({ workspaceOpen }: { workspaceOpen: boolean }
           </div>
           <h1 id="public-title">
             See clearly.
-            <br />
-            {" "}<em>Move forward.</em>
+            <br /> <em>Move forward.</em>
           </h1>
           <p className="public-solution">
-            Navoscope helps market teams explore opportunities, compare weighted scores and review
-            the reasoning in one place.
+            Navoscope helps market teams explore opportunities and compare weighted scores. Sign in
+            to ask DeepSeek questions, upload reference files and generate market reports.
           </p>
           <p className="public-problem">
             Turn scattered information and assumptions into a structured starting point for your
@@ -37,6 +34,23 @@ export function PublicIntroduction({ workspaceOpen }: { workspaceOpen: boolean }
               Try Market Explorer <ArrowRight aria-hidden="true" />
             </Link>
           </Button>
+          <div className="public-secondary-actions">
+            <Button asChild variant="ghost" className="public-secondary-link">
+              <a href="#guest-scoring">
+                Try the scoring demo as a guest <ArrowDown aria-hidden="true" />
+              </a>
+            </Button>
+            <Button asChild variant="ghost" className="public-secondary-link">
+              <a
+                href="https://cn.unoanalyzer.com/app/project/G6GaIWlHF8vIWt8mmMREKq6rLby_dsdT89v7dQYLHao"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Give feedback <ExternalLink aria-hidden="true" />
+                <span className="sr-only"> (opens in a new tab)</span>
+              </a>
+            </Button>
+          </div>
           <p className="public-access-note">
             Explore this page freely. Sign in or create an account to use the workspace.
           </p>
@@ -103,8 +117,9 @@ export function PublicIntroduction({ workspaceOpen }: { workspaceOpen: boolean }
               </span>
               <h3>Review the reasoning</h3>
               <p>
-                Record your assumptions and review a structured demo report: risks, evidence gaps
-                and a suggested next step.
+                Sign in to ask DeepSeek questions, upload a reference file and generate an
+                AI-assisted report using your ratings and assumptions. Review risks, evidence gaps
+                and suggested next steps; check AI responses against reliable sources.
               </p>
             </li>
           </ol>
@@ -112,63 +127,18 @@ export function PublicIntroduction({ workspaceOpen }: { workspaceOpen: boolean }
       </section>
 
       <section
+        id="guest-scoring"
+        tabIndex={-1}
         className="public-section public-example-section"
         aria-labelledby="public-example-title"
       >
         <div className="public-container">
           <div className="public-section-heading">
-            <p className="public-label">03 / Illustrative preview · Static example</p>
+            <p className="public-label">03 / Illustrative preview · Guest scoring demo</p>
             <h2 id="public-example-title">European heat pumps</h2>
             <p>Your ratings, with the maths in view.</p>
           </div>
-          <div
-            className="public-score-preview"
-            role="group"
-            aria-label="Static illustrative weighted score example"
-          >
-            <div className="public-score-total">
-              <span className="public-label">Weighted score</span>
-              <p>
-                <strong>{weightedScore(exampleScores)}</strong>
-                <span>/100</span>
-              </p>
-              <span>Illustrative evaluation</span>
-            </div>
-            <div className="public-score-detail">
-              <table>
-                <caption className="sr-only">Five ratings and their weighted points</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Criterion</th>
-                    <th scope="col">Rating</th>
-                    <th scope="col">Weight</th>
-                    <th scope="col">Points</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {criteria.map(({ key, label, weight }) => (
-                    <tr key={key}>
-                      <th scope="row">{label}</th>
-                      <td>{exampleScores[key]}/5</td>
-                      <td>{Math.round(weight * 100)}%</td>
-                      <td>{Math.round((exampleScores[key] / 5) * weight * 100)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <p className="public-calculation">
-                Demand: 5/5 × 30% = <strong>30 pts</strong>
-                <br />
-                Other four ratings: 3/5 × combined 70% = <strong>42 pts</strong>
-                <br />
-                <strong>Total: 72/100</strong>
-              </p>
-            </div>
-          </div>
-          <p className="public-example-note">
-            Static illustrative example only. Ratings are assumed, not verified market research or a
-            forecast.
-          </p>
+          <GuestScoringExample />
         </div>
       </section>
 
@@ -201,8 +171,9 @@ export function PublicIntroduction({ workspaceOpen }: { workspaceOpen: boolean }
           <span className="public-footer-brand">Navoscope / MARKET COMPASS</span>
           <p>
             Student prototype · Manufacturer-sourced application relevance · Legacy illustrative
-            data · Rule-based analysis demonstration. No live language model is called; outputs
-            require further research and human judgement.
+            data · Signed-in DeepSeek Q&A, reference file upload and AI-assisted report generation.
+            Questions, report context and included file text are shared with DeepSeek. AI outputs
+            may be inaccurate and require further research and human judgement.
           </p>
         </div>
       </footer>
