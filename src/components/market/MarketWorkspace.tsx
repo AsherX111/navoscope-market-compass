@@ -1,3 +1,4 @@
+import { feedbackUrl } from "@/lib/feedback-url";
 import { useEffect, useState } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import {
@@ -62,6 +63,9 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
   const market = markets.find((m) => m.id === selected);
   const saved = evaluations.find((e) => e.market_id === selected);
   const archived = saved?.status === "Archived";
+  const currentCatalog = catalogMarkets(catalog);
+  const industries = [...new Set(currentCatalog.map((entry) => entry.industry))].sort();
+  const regions = [...new Set(currentCatalog.map((entry) => entry.region))].sort();
   const visible = searchMarkets({ query, industry, region, minGrowth, sort, catalog });
   const total = weightedScore(scores);
   const advice = recommendation(scores);
@@ -93,13 +97,28 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
     setStatus(saved?.status ?? "New");
     setDirty(false);
   }, [saved, selected, dirty]);
+  function clearFilters() {
+    setQuery("");
+    setIndustry("");
+    setRegion("");
+    setMinGrowth(0);
+  }
+
+  function changeCatalog(nextCatalog: Catalog) {
+    setCatalog(nextCatalog);
+    const entries = catalogMarkets(nextCatalog);
+    if (!entries.some((entry) => entry.industry === industry)) setIndustry("");
+    if (!entries.some((entry) => entry.region === region)) setRegion("");
+    if (!entries.some((entry) => entry.growth != null)) setMinGrowth(0);
+  }
+
   function choose(id: string) {
     if (id === selected) return true;
     if (dirty && !window.confirm("Discard unsaved evaluation changes?")) return false;
     setDirty(false);
     const target = markets.find((m) => m.id === id);
     if (!target) return false;
-    if (target.catalog !== "domel") setCatalog("legacy");
+    if (target.catalog !== "domel" && catalog === "domel") changeCatalog("legacy");
     setSelected(id);
     setReport(null);
     setSavedReportId(null);
@@ -386,7 +405,7 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
       {message && <p role="status">{message}</p>}
       <label className="market-picker">
         Catalog / evidence
-        <select value={catalog} onChange={(e) => setCatalog(e.target.value as Catalog)}>
+        <select value={catalog} onChange={(e) => changeCatalog(e.target.value as Catalog)}>
           <option value="domel">Domel · Manufacturer-sourced applications (20)</option>
           <option value="legacy">Legacy · Illustrative teaching catalog (6)</option>
           <option value="all">All evidence types (26)</option>
@@ -408,8 +427,10 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
               Industry
               <select value={industry} onChange={(e) => setIndustry(e.target.value)}>
                 <option value="">All industries</option>
-                {[...new Set(markets.map((m) => m.industry))].map((i) => (
-                  <option key={i}>{i}</option>
+                {industries.map((i) => (
+                  <option key={i} value={i}>
+                    {i}
+                  </option>
                 ))}
               </select>
             </label>
@@ -417,14 +438,20 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
               Region
               <select value={region} onChange={(e) => setRegion(e.target.value)}>
                 <option value="">All regions</option>
-                {[...new Set(markets.map((m) => m.region))].map((r) => (
-                  <option key={r}>{r}</option>
+                {regions.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
                 ))}
               </select>
             </label>
             <label>
               Minimum growth
-              <select value={minGrowth} onChange={(e) => setMinGrowth(Number(e.target.value))}>
+              <select
+                disabled={!currentCatalog.some((entry) => entry.growth != null)}
+                value={minGrowth}
+                onChange={(e) => setMinGrowth(Number(e.target.value))}
+              >
                 <option value={0}>Any growth</option>
                 <option value={10}>10% or higher</option>
                 <option value={15}>15% or higher</option>
@@ -439,11 +466,25 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
               </select>
             </label>
           </div>
+          <p>
+            Pick a market, open its details to review the evidence, then choose “Evaluate this
+            market.”
+          </p>
+          <p>
+            <a href={feedbackUrl} target="_blank" rel="noopener noreferrer">
+              Leave a written suggestion on UnoAnalyzer
+            </a>
+          </p>
           <p role="status">
             {visible.length} market{visible.length === 1 ? "" : "s"} found
           </p>
           {visible.length === 0 && (
-            <p>No markets match. Clear your search or broaden the filters.</p>
+            <div>
+              <p>No markets match these filters in the selected catalog.</p>
+              <button type="button" onClick={clearFilters}>
+                Clear search and filters
+              </button>
+            </div>
           )}
           <div className="market-explore-layout">
             <div className="market-grid">
@@ -457,6 +498,14 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
                   <p>
                     Size: {metricText(m.size, "size")} · Growth: {metricText(m.growth, "growth")}
                   </p>
+                  {m.sources?.map((source) => (
+                    <p key={source.url}>
+                      {source.publisher}:{" "}
+                      <a href={source.url} target="_blank" rel="noopener noreferrer">
+                        {source.title}
+                      </a>
+                    </p>
+                  ))}
                   <button
                     onClick={() => setDetail(detail === m.id ? null : m.id)}
                     aria-expanded={detail === m.id}
@@ -524,6 +573,16 @@ export function MarketWorkspace({ page, userId }: { page: number; userId: string
                   Rate each criterion 1 (weak) to 5 (strong). Higher risk resilience means lower
                   risk.
                 </p>
+                <p>
+                  The score combines your ratings using the weights below. Record the evidence and
+                  assumptions behind those ratings in Research notes, then open Analysis to review
+                  the evidence gaps and next steps.
+                </p>
+                <details>
+                  <summary>Evidence and limitations for this market</summary>
+                  <p>{market.evidence}</p>
+                  <Sources sources={market.sources} />
+                </details>
                 <p>Formula: Σ (rating ÷ 5 × weight × 100). Range 20–100; rounded to one decimal.</p>
                 <form
                   onSubmit={(e) => {

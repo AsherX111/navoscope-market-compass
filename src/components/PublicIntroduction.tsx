@@ -1,3 +1,4 @@
+import { feedbackUrl } from "@/lib/feedback-url";
 import { Link } from "@tanstack/react-router";
 import { ArrowDown, ArrowRight, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,11 +42,7 @@ export function PublicIntroduction({ workspaceOpen }: { workspaceOpen: boolean }
               </a>
             </Button>
             <Button asChild variant="ghost" className="public-secondary-link">
-              <a
-                href="https://cn.unoanalyzer.com/app/project/G6GaIWlHF8vIWt8mmMREKq6rLby_dsdT89v7dQYLHao"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a href={feedbackUrl} target="_blank" rel="noopener noreferrer">
                 Give feedback <ExternalLink aria-hidden="true" />
                 <span className="sr-only"> (opens in a new tab)</span>
               </a>
